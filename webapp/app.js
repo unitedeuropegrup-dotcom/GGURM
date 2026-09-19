@@ -2,7 +2,7 @@ const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); try{tg.setHeaderColor('#07120c'); tg.setBackgroundColor('#07120c');}catch(e){} }
 
 // ⚠️ ПОМЕНЯЙ на юзернейм твоего бота (без @)
-const BOT_USERNAME = "ggurm_bot";
+const BOT_USERNAME = "GGURM_BOT";
 const CHANNEL_USERNAME = "GGURMNEWS";
 // Backend (мгновенные пополнения, общий баланс/лента, вывод). Пусто — офлайн-режим.
 const BACKEND_URL = "https://ggurm.onrender.com";
