@@ -86,8 +86,9 @@ async def start(m: types.Message, command: CommandStart):
 
 
 @dp.callback_query(F.data == "support")
-async def cb_support(cq: types.CallbackQuery):
-    await cq.answer("Поддержка скоро появится. Новости — в канале GGURMNEWS.", show_alert=True)
+async def cb_support_btn(cq: types.CallbackQuery):
+    await cq.answer()
+    await cq.message.answer("Опишите вашу проблему и мы постараемся её решить.")
 
 
 @dp.message(Command("deposit"))
@@ -232,9 +233,10 @@ pending_reply: dict[int, int] = {}  # admin_id -> user_id, кому отвеча
 
 
 def _who(u: types.User) -> str:
+    if u.username:
+        return f"@{u.username} [id {u.id}]"
     name = (u.full_name or "Игрок").strip() or "Игрок"
-    un = f" (@{u.username})" if u.username else ""
-    return f"{name}{un} [id {u.id}]"
+    return f"{name} [id {u.id}]"
 
 
 @dp.callback_query(F.data.startswith("reply:"))
@@ -274,8 +276,8 @@ async def support_catcher(m: types.Message, bot: Bot):
             await m.answer("Не получилось доставить ответ.")
         return
     if m.from_user.id == ADMIN_ID:
-        return
-    if not ADMIN_ID:
+        pass  # свои сообщения тоже пересылаем себе
+    elif not ADMIN_ID:
         await m.answer("Поддержка пока не настроена.")
         return
     if (m.text or "").strip().lower() in KEYWORDS:
@@ -286,7 +288,7 @@ async def support_catcher(m: types.Message, bot: Bot):
 
 @dp.message(F.photo)
 async def support_photo(m: types.Message, bot: Bot):
-    if m.from_user.id == ADMIN_ID or not ADMIN_ID:
+    if not ADMIN_ID:
         return
     await bot.forward_message(ADMIN_ID, m.chat.id, m.message_id)
     kb = InlineKeyboardMarkup(inline_keyboard=[[
