@@ -221,6 +221,8 @@ img{max-width:100%}
 .ref-btns{display:flex;gap:8px;margin-top:10px}
 .ref-btns .btn-share{flex:1.4;font-size:13px;padding:10px}
 .ref-btns .btn-keep{flex:1}
+.profile-actions{margin-top:12px}
+.profile-actions .btn-open{width:100%}
 .hint{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5}
 .profile-actions{margin-top:10px}
 

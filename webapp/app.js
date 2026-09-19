@@ -203,22 +203,31 @@ async function loadLive() {
     }
   } catch(e) { renderTop(); }
 }
-async function api(path, body, method) {
+async function api(path, body, method, timeoutMs) {
   if (!BACKEND_URL) return null;
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), timeoutMs || 12000);
   try {
+    let r;
     if (method === 'GET') {
-      const r = await fetch(BACKEND_URL + path, { cache: 'no-store' });
-      return await r.json();
+      r = await fetch(BACKEND_URL + path, { cache: 'no-store', signal: ctrl.signal });
+    } else {
+      r = await fetch(BACKEND_URL + path, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ initData: tg?.initData || '', ...(body||{}) }), signal: ctrl.signal });
     }
-    const r = await fetch(BACKEND_URL + path, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ initData: tg?.initData || '', ...(body||{}) }) });
+    clearTimeout(to);
     return await r.json();
-  } catch(e) { return null; }
+  } catch(e) { clearTimeout(to); return null; }
 }
 async function initBackend() {
   if (!BACKEND_URL || !tg?.initData) return;
-  const me = await api('/api/me');
-  if (!me || !me.ok) return;
+  let me = null;
+  for (let i = 0; i < 4 && !me; i++) { // бесплатный сервер просыпается до минуты
+    if (i > 0) toast('Сервер просыпается, пробую ещё…');
+    me = await api('/api/me', null, null, 25000);
+  }
+  if (!me || !me.ok) { toast('Нет связи с сервером — офлайн-режим'); return; }
   serverMode = true;
+  toast('Общий баланс подключён');
   if (!localStorage.getItem('ggurm_imported')) {
     const im = await api('/api/import', { balance, won: wonTotal });
     if (im && im.ok) {
@@ -414,6 +423,7 @@ function openShare() {
 }
 document.getElementById('shareBtn2').onclick = openShare;
 document.getElementById('copyRef').onclick = () => { navigator.clipboard?.writeText(refLink); toast('Ссылка скопирована!'); };
+document.getElementById('depositProfileBtn').onclick = () => toast('Депозит скоро появится');
 
 // ---------- QUEST (бесплатный кейс) ----------
 document.getElementById('openCaseBtn').onclick = () => {

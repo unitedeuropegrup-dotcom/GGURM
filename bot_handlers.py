@@ -49,7 +49,8 @@ def deposit_kb():
 DEPOSIT_TEXT = (
     "<b>Пополнение за звёзды</b>\n\n"
     f"Курс: <b>1 звезда = {STAR_RATE} GG</b>\n"
-    "Промокод <b>GGURM</b> даёт +15% (вводится в приложении, в разделе ПРОМОКОД).\n\n"
+    "Промокод <b>GGURM</b> даёт +15% (вводится в приложении, в разделе ПРОМОКОД).\n"
+    "GG тратятся на мемы из Секретного кейса: /мемы\n\n"
     "Выбери пакет:"
 )
 
@@ -93,6 +94,16 @@ async def cb_support(cq: types.CallbackQuery):
 @dp.message(Command("deposit"))
 async def cmd_deposit(m: types.Message):
     await show_deposit(m)
+
+
+@dp.message(Command("memes"))
+async def cmd_memes(m: types.Message):
+    items = [i for i in db.inv_list(m.from_user.id) if i["status"] == "active"]
+    if not items:
+        return await m.answer("Инвентарь пуст. Мемы падают из Секретного кейса в приложении.")
+    lines = [f"• {i['name']} — {i['price']} GG" for i in items[:30]]
+    total = sum(i["price"] for i in items)
+    await m.answer("Твои мемы:\n" + "\n".join(lines) + f"\n\nВсего: {len(items)} шт на {total} GG")
 
 
 @dp.callback_query(F.data == "no_url")
