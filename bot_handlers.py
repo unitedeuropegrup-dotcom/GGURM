@@ -67,9 +67,9 @@ async def start(m: types.Message, command: CommandStart):
         await m.answer("Напиши свой вопрос следующим сообщением — админ ответит прямо сюда.")
     rows = []
     if WEBAPP_URL.startswith("https://"):
-        rows.append([InlineKeyboardButton(text="Играть!", web_app=WebAppInfo(url=WEBAPP_URL))])
-    rows.append([InlineKeyboardButton(text="Новости", url="https://t.me/GGURMNEWS"),
-                 InlineKeyboardButton(text="Поддержка", callback_data="support")])
+        rows.append([InlineKeyboardButton(text="🚀 Играть!", web_app=WebAppInfo(url=WEBAPP_URL))])
+    rows.append([InlineKeyboardButton(text="📢 Новости", url="https://t.me/GGURMNEWS"),
+                 InlineKeyboardButton(text="💬 Поддержка", callback_data="support")])
     kb = InlineKeyboardMarkup(inline_keyboard=rows)
     ref = ""
     if args.startswith("ref_"):
