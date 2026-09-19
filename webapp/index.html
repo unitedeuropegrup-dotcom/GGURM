@@ -36,18 +36,19 @@
       <b>GG<span>УРМ</span></b>
       <button class="quest-close" id="drawerClose">✕</button>
     </div>
-    <button class="drawer-item active" data-goto="home">🏠 Главная</button>
-    <button class="drawer-item" data-goto="cases">📦 Кейсы</button>
-    <button class="drawer-item" data-soon="Апгрейдер">⬆ Апгрейдер</button>
-    <button class="drawer-item" data-soon="Батл">🛡 Батл</button>
-    <button class="drawer-item" data-soon="Дайсы">🎲 Дайсы</button>
-    <button class="drawer-item" data-soon="Краш">🚀 Краш</button>
-    <button class="drawer-item" data-soon="Квесты">📋 Квесты</button>
-    <button class="drawer-item" data-soon="Розыгрыши">🏆 Розыгрыши</button>
-    <button class="drawer-item" data-soon="FAQ">❓ FAQ</button>
-    <button class="drawer-item" data-soon="Бонусы">🎁 Бонусы</button>
-    <button class="drawer-item" data-goto="profile">👤 Профиль</button>
-    <button class="drawer-item" id="drawerSupport">💬 Поддержка</button>
+    <button class="drawer-item active" data-goto="home">Главная</button>
+    <button class="drawer-item" data-goto="cases">Кейсы</button>
+    <button class="drawer-item" data-soon="Апгрейдер">Апгрейдер</button>
+    <button class="drawer-item" data-soon="Батл">Батл</button>
+    <button class="drawer-item" data-soon="Дайсы">Дайсы</button>
+    <button class="drawer-item" data-soon="Краш">Краш</button>
+    <button class="drawer-item" data-soon="Квесты">Квесты</button>
+    <button class="drawer-item" data-soon="Розыгрыши">Розыгрыши</button>
+    <button class="drawer-item" data-soon="FAQ">FAQ</button>
+    <button class="drawer-item" data-soon="Бонусы">Бонусы</button>
+    <button class="drawer-item" data-goto="profile">Профиль</button>
+    <button class="drawer-item" data-goto="settings">Настройки</button>
+    <button class="drawer-item" id="drawerSupport">Поддержка</button>
   </aside>
 </div>
 
@@ -57,14 +58,14 @@
     <button class="tnav-btn logo-mini"><img class="logo-img mini" src="assets/logo.jpg" alt="">GG<span>УРМ</span></button>
     <button class="tnav-btn active" data-goto="home">ГЛАВНАЯ</button>
     <button class="tnav-btn" data-goto="cases">КЕЙСЫ</button>
-    <button class="tnav-btn" data-soon="Апгрейдер">⬆ АПГРЕЙДЕР</button>
-    <button class="tnav-btn" data-soon="Батл">🛡 БАТЛ</button>
-    <button class="tnav-btn" data-soon="Дайсы">🎲 ДАЙСЫ</button>
-    <button class="tnav-btn" data-soon="Краш">🚀 КРАШ</button>
-    <button class="tnav-btn" data-soon="Квесты">📋 КВЕСТЫ</button>
-    <button class="tnav-btn" data-soon="Розыгрыши">🏆 РОЗЫГРЫШИ</button>
-    <button class="tnav-btn" data-soon="FAQ">❓ FAQ</button>
-    <button class="tnav-btn" data-soon="Бонусы">🎁 БОНУСЫ</button>
+    <button class="tnav-btn" data-soon="Апгрейдер">АПГРЕЙДЕР</button>
+    <button class="tnav-btn" data-soon="Батл">БАТЛ</button>
+    <button class="tnav-btn" data-soon="Дайсы">ДАЙСЫ</button>
+    <button class="tnav-btn" data-soon="Краш">КРАШ</button>
+    <button class="tnav-btn" data-soon="Квесты">КВЕСТЫ</button>
+    <button class="tnav-btn" data-soon="Розыгрыши">РОЗЫГРЫШИ</button>
+    <button class="tnav-btn" data-soon="FAQ">FAQ</button>
+    <button class="tnav-btn" data-soon="Бонусы">БОНУСЫ</button>
     <button class="tnav-btn" data-goto="profile">ПРОФИЛЬ</button>
   </div>
 </nav>
@@ -158,33 +159,34 @@
             <span class="price">0 <img class="gg-img mini" src="assets/ggcoin.png" alt="G"></span>
           </div>
         </div>
+        <div class="case-card" id="openSecretCase">
+          <div class="case-photo">
+            <img src="assets/cases/secret.png" alt="Секретный кейс" onerror="this.remove()">
+            <div class="photo-placeholder">
+              <div class="box-emoji">🔒</div>
+            </div>
+            <div class="case-glow"></div>
+          </div>
+          <div class="case-name">СЕКРЕТНЫЙ</div>
+          <div class="case-footer">
+            <span class="items">3 предм.</span>
+            <span class="price">89 <img class="gg-img mini" src="assets/ggcoin.png" alt="G"></span>
+          </div>
+        </div>
       </section>
     </main>
 
     <main id="tab-case" class="tab">
       <button class="back-btn" data-goto="cases">← Назад к кейсам</button>
-      <h1 class="big-title">БЕСПЛАТНЫЙ</h1>
+      <h1 class="big-title" id="caseTitle">БЕСПЛАТНЫЙ</h1>
       <div class="case-detail">
         <div class="detail-left">
           <div class="case-photo large">
-            <img src="assets/cases/free.png" alt="Бесплатный кейс" onerror="this.remove()">
-            <div class="photo-placeholder">
-              <svg class="case-art" viewBox="0 0 200 160">
-                <defs><linearGradient id="cb2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1aff7a"/><stop offset="1" stop-color="#006633"/></linearGradient></defs>
-                <ellipse cx="100" cy="142" rx="70" ry="9" fill="rgba(34,255,136,.15)"/>
-                <rect x="82" y="34" width="36" height="22" rx="9" fill="none" stroke="url(#cb2)" stroke-width="5"/>
-                <rect x="40" y="50" width="120" height="86" rx="12" fill="#0d2115" stroke="url(#cb2)" stroke-width="3"/>
-                <rect x="40" y="79" width="120" height="6" fill="url(#cb2)" opacity=".7"/>
-                <rect x="90" y="73" width="20" height="24" rx="4" fill="url(#cb2)"/>
-                <circle cx="100" cy="85" r="3" fill="#04120a"/>
-                <circle cx="60" cy="65" r="4" fill="none" stroke="#22ff88" stroke-width="2" opacity=".6"/>
-                <circle cx="140" cy="65" r="4" fill="none" stroke="#22ff88" stroke-width="2" opacity=".6"/>
-                <text x="100" y="124" text-anchor="middle" font-family="Russo One,sans-serif" font-size="26" fill="#22ff88">GG</text>
-              </svg>
-            </div>
+            <img id="casePhoto" src="assets/cases/free.png" alt="Кейс" onerror="this.remove()">
+            <div class="photo-placeholder" id="casePlaceholder"></div>
           </div>
-          <h2>Бесплатный</h2>
-          <div class="free-note">🎁 Бесплатный кейс • каждые 12 часов</div>
+          <h2 id="caseName">Бесплатный</h2>
+          <div id="caseMeta"><div class="free-note">🎁 Бесплатный кейс • каждые 12 часов</div></div>
           <button class="btn-open big" id="openCaseBtn">ОТКРЫТЬ КЕЙС</button>
           <div class="speed-row">
             <button class="speed active" data-speed="slow">Медленная</button>
@@ -219,6 +221,22 @@
         </div>
         <p class="hint">Проверка репоста и награды за друзей появятся с backend.</p>
       </div>
+      <section class="section-title"><h2>ИНВЕНТАРЬ</h2><div class="line"></div></section>
+      <div class="meme-btns">
+        <button class="h-btn" id="withdrawOpenBtn">Вывод</button>
+        <button class="h-btn" id="sellAllBtn">Продать всё</button>
+      </div>
+      <div class="inventory" id="memeInv"><div class="empty">Мемов пока нет — открой Секретный кейс</div></div>
+    </main>
+
+    <main id="tab-settings" class="tab">
+      <h1 class="big-title">НАСТРОЙКИ</h1>
+      <div class="settings">
+        <button class="set-row" id="soundRow"><span>Звуки</span><span class="switch on" id="soundSwitch"><i></i></span></button>
+        <div class="set-row static"><span>Режим</span><b id="modeLabel">Офлайн</b></div>
+        <div class="set-row static"><span>Версия</span><b>GGУРМ 1.0</b></div>
+      </div>
+      <p class="hint">Таймеры (перезарядка кейса, заявки на вывод) идут на сервере и продолжаются, даже если закрыть приложение.</p>
     </main>
   </div>
 </div>
@@ -229,9 +247,26 @@
   <button class="nav-btn" data-goto="profile">ПРОФИЛЬ</button>
 </nav>
 
-<button class="support-fab" id="supportFab" title="Поддержка">💬</button>
+<button class="support-fab" id="supportFab" title="Поддержка">?</button>
 
 <footer class="footer" id="footerTag">@ggurm_bot</footer>
+
+<!-- ВЫВОД (как на скрине) -->
+<div class="modal hidden" id="wdModal">
+  <div class="quest-card wide">
+    <button class="quest-close" id="wdClose">✕</button>
+    <h2>ВЫБЕРИ ПРЕДМЕТЫ ДЛЯ ВЫВОДА</h2>
+    <div class="wd-step"><span class="step-num">1</span><div><b>Что выводим</b><small>Вывод от 41 GG, не раньше часа после выигрыша</small></div></div>
+    <div class="wd-items" id="wdItems"></div>
+    <div class="wd-step"><span class="step-num">2</span><div><b>Кому отдать</b><small>Ник в Roblox, на него придёт трейд</small></div></div>
+    <input class="search" id="wdNick" placeholder="Твой ник в Roblox" maxlength="32">
+    <div class="wd-step"><span class="step-num">3</span><div><b>Когда забирать</b><small>Точное время выбирай сам</small></div></div>
+    <input class="search" type="datetime-local" id="wdWhen">
+    <button class="btn-open big" id="wdSubmit">ОТПРАВИТЬ ЗАЯВКУ</button>
+    <div class="wd-step"><div><b>История заявок</b></div></div>
+    <div class="wd-history" id="wdHistory"><div class="empty">Заявок пока нет</div></div>
+  </div>
+</div>
 
 <!-- МОДАЛКА ЗАДАНИЙ (как на скрине: поделись в любом чате + ГОТОВО) -->
 <div class="modal hidden" id="questModal">
@@ -241,12 +276,12 @@
     <h2>Выполни задания</h2>
     <p class="quest-sub">Чтобы открыть бесплатный кейс, нужно выполнить всё ниже — и так каждый раз перед новым прокрутом.</p>
     <button class="quest-task" id="questShare">
-      <span class="qt-icon">✈️</span>
+      <span class="qt-icon t">↗</span>
       <span class="qt-text">Поделитесь сообщением в любом чате</span>
       <span class="qt-state" id="questShareState">→</span>
     </button>
     <button class="quest-task" id="questChannel">
-      <span class="qt-icon">📢</span>
+      <span class="qt-icon t">★</span>
       <span class="qt-text">Подпишитесь на канал GGURMNEWS</span>
       <span class="qt-state" id="questChannelState">→</span>
     </button>

@@ -270,3 +270,39 @@ img{max-width:100%}
 .pay-pack span{font-size:12px;color:var(--muted)}
 .quest-sub.small{font-size:11px;margin:0}
 .quest-sub .green{color:var(--green)}
+/* мемы */
+.meme-tile{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#1aff7a,#006633);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(34,255,136,.35)}
+.meme-tile b{font-family:'Russo One';font-size:22px;color:#04120a}
+.meme-tile.big{width:100px;height:100px;border-radius:22px}
+.meme-tile.big b{font-size:52px}
+.meme-tile.sm{width:44px;height:44px}
+.meme-tile.xs{width:34px;height:34px;border-radius:9px}
+.meme-tile.xs b{font-size:17px}
+.r-item .meme-tile{width:56px;height:56px}
+.r-item .meme-tile b{font-size:28px}
+.meme-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.inv-wd{background:rgba(34,255,136,.1);border:1px solid var(--green);color:var(--green);border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+.top-num{font-family:'Russo One';color:var(--gold);font-size:15px;min-width:20px;text-align:center}
+/* настройки */
+.settings{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.set-row{width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);padding:16px;font-size:15px;font-weight:600;cursor:pointer}
+.set-row:last-child{border-bottom:none}
+.set-row.static{cursor:default}
+.set-row b{color:var(--green);font-size:14px}
+.switch{width:52px;height:30px;border-radius:999px;background:#223;position:relative;transition:.2s;flex-shrink:0;border:1px solid var(--border)}
+.switch i{position:absolute;top:3px;left:4px;width:22px;height:22px;border-radius:50%;background:#8fb8a0;transition:.2s}
+.switch.on{background:rgba(34,255,136,.3);border-color:var(--green)}
+.switch.on i{left:24px;background:var(--green);box-shadow:0 0 10px rgba(34,255,136,.7)}
+/* вывод */
+.quest-card.wide{max-width:440px;max-height:88vh;overflow-y:auto;text-align:left}
+.quest-card.wide h2{text-align:center}
+.wd-step{display:flex;gap:10px;align-items:flex-start;margin:12px 0 8px}
+.wd-step b{font-size:14px;display:block}.wd-step small{color:var(--muted);font-size:12px}
+.wd-items{display:flex;flex-direction:column;gap:8px}
+.wd-item{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:12px;padding:10px;cursor:pointer;color:var(--text);text-align:left;width:100%}
+.wd-item.sel{border-color:var(--gold);box-shadow:0 0 12px rgba(255,207,64,.25)}
+.wd-item.off{opacity:.45;cursor:not-allowed}
+.wd-item b{font-size:13px;display:block}.wd-item small{color:var(--gold);font-size:11px;font-weight:800}
+.wd-history{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.support-fab{font-family:'Russo One';font-weight:900;color:#04120a}
+.qt-icon.t{background:linear-gradient(135deg,var(--green),#00994d);color:#04120a;font-weight:900;font-size:18px}

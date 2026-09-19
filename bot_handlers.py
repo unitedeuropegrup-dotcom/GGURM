@@ -9,6 +9,7 @@ import secrets
 import db
 
 log = logging.getLogger("ggurm")
+ADMIN_ID = int(os.getenv("ADMIN_ID", "0") or 0)
 # USE_CODES=1 (по умолчанию): после оплаты бот выдаёт чек GGDP-... — вводится в ПРОМОКОД, работает без backend.
 # USE_CODES=0: GG начисляются сразу в общую БД (нужен поднятый server.py + BACKEND_URL во фронте).
 USE_CODES = os.getenv("USE_CODES", "1") == "1"
@@ -33,12 +34,12 @@ def main_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🟢 Открыть GGУРМ", web_app=WebAppInfo(url=WEBAPP_URL))],
         [InlineKeyboardButton(text="📦 Бесплатный кейс", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton(text="💳 Пополнить за ⭐", callback_data="deposit")],
+        [InlineKeyboardButton(text="Пополнить за звёзды", callback_data="deposit")],
     ])
 
 
 def deposit_kb():
-    rows = [[InlineKeyboardButton(text=f"⭐ {s} → {g} GG", callback_data=f"buy:{s}:{g}")]
+    rows = [[InlineKeyboardButton(text=f"{s} звёзд → {g} GG", callback_data=f"buy:{s}:{g}")]
             for s, g in PACKAGES]
     if WEBAPP_URL.startswith("https://"):
         rows.append([InlineKeyboardButton(text="🟢 Открыть GGУРМ", web_app=WebAppInfo(url=WEBAPP_URL))])
@@ -46,10 +47,10 @@ def deposit_kb():
 
 
 DEPOSIT_TEXT = (
-    "💳 <b>Пополнение за звёзды</b>\n\n"
-    f"Курс: <b>1 ⭐ = {STAR_RATE} GG</b>\n"
+    "<b>Пополнение за звёзды</b>\n\n"
+    f"Курс: <b>1 звезда = {STAR_RATE} GG</b>\n"
     "Промокод <b>GGURM</b> даёт +15% (вводится в приложении, в разделе ПРОМОКОД).\n\n"
-    "Выбери пакет 👇"
+    "Выбери пакет:"
 )
 
 
@@ -157,7 +158,7 @@ async def success(m: types.Message):
         if USE_CODES:
             code = f"GGDP-{uid}-{g}-{secrets.token_hex(3).upper()}"
             await m.answer(
-                f"✅ Оплата прошла: <b>{sp.total_amount} ⭐ → {g} GG</b>!\n\n"
+                f"Оплата прошла: <b>{sp.total_amount} звёзд → {g} GG</b>!\n\n"
                 f"Твой чек:\n<code>{code}</code>\n\n"
                 "Вставь его в приложении: Главная → ПРОМОКОД — и GG упадут на баланс.",
                 parse_mode="HTML",
@@ -169,12 +170,50 @@ async def success(m: types.Message):
             db.set_bonus(uid, 0)
         new_bal = db.add_balance(uid, g)
         await m.answer(
-            f"✅ Оплата прошла: <b>{sp.total_amount} ⭐ → {g} GG</b>!\n\n"
-            f"Баланс: <b>{new_bal} GG</b> — уже в приложении, обнови Mini App 💰",
+            f"Оплата прошла: <b>{sp.total_amount} звёзд → {g} GG</b>!\n\n"
+            f"Баланс: <b>{new_bal} GG</b> — уже в приложении, обнови Mini App.",
             parse_mode="HTML",
         )
     else:
         await m.answer("Оплата прошла, но пакет не распознан — напиши в поддержку.", parse_mode="HTML")
+
+
+@dp.callback_query(F.data.startswith("yes_wd:"))
+async def cb_yes_wd(cq: types.CallbackQuery, bot: Bot):
+    try:
+        wid = int(cq.data.split(":")[1])
+    except (ValueError, IndexError):
+        return await cq.answer()
+    w = db.wd_get(wid)
+    if not w or w["tg_id"] != cq.from_user.id or w["status"] != "asked":
+        return await cq.answer("Заявка уже обработана")
+    db.wd_set_status(wid, "confirmed")
+    await cq.answer()
+    try:
+        await cq.message.edit_text(f'Вывод подтверждён: "{w["name"]}". Ожидай трейд в игре.')
+    except Exception:
+        pass
+    if ADMIN_ID:
+        await bot.send_message(ADMIN_ID, f"Игрок {w['tg_id']} подтверждает вывод: {w['name']} ({w['price']} GG), Roblox: {w['roblox']}")
+
+
+@dp.callback_query(F.data.startswith("no_wd:"))
+async def cb_no_wd(cq: types.CallbackQuery, bot: Bot):
+    try:
+        wid = int(cq.data.split(":")[1])
+    except (ValueError, IndexError):
+        return await cq.answer()
+    w = db.wd_get(wid)
+    if not w or w["tg_id"] != cq.from_user.id or w["status"] != "asked":
+        return await cq.answer("Заявка уже обработана")
+    db.wd_set_status(wid, "cancelled")
+    await cq.answer()
+    try:
+        await cq.message.edit_text(f'Вывод "{w["name"]}" отменён. Мем возвращён в инвентарь.')
+    except Exception:
+        pass
+    if ADMIN_ID:
+        await bot.send_message(ADMIN_ID, f"Игрок {w['tg_id']} отказался от вывода: {w['name']} ({w['price']} GG)")
 
 
 @dp.message(F.text.lower().in_({"баланс", "профиль", "кейс", "бесплатный", "кейсы", "пополнить", "депозит", "звезды", "звёзды"}))
