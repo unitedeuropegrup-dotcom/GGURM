@@ -6,7 +6,7 @@
   --text:#eafff2; --muted:#8fb8a0;
   --gold:#ffcf40;
 }
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:96px;overflow-x:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:24px;overflow-x:hidden}
 h1,h2,.logo-text,.section-title h2,.big-title{font-family:'Russo One',sans-serif;letter-spacing:.5px}
 .bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(600px 300px at 20% 0%,rgba(34,255,136,.18),transparent 60%),radial-gradient(500px 400px at 90% 30%,rgba(0,204,102,.12),transparent 60%),radial-gradient(700px 500px at 50% 100%,rgba(34,255,136,.08),transparent 60%)}
 .bg-grid{position:fixed;inset:0;z-index:0;opacity:.06;pointer-events:none;background-image:linear-gradient(rgba(34,255,136,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(34,255,136,.5) 1px,transparent 1px);background-size:32px 32px}
@@ -221,12 +221,12 @@ img{max-width:100%}
 .hint{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5}
 .profile-actions{margin-top:10px}
 
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;background:rgba(7,18,12,.92);backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.bottom-nav{display:none}
 .top-nav{display:none}
 .footer{text-align:center;color:var(--muted);font-size:12px;padding:18px 0 6px;position:relative;z-index:1}
 .nav-btn{flex:1;background:rgba(34,255,136,.06);border:1px solid var(--border);color:var(--muted);font-family:'Russo One';font-size:15px;letter-spacing:1px;cursor:pointer;padding:13px 4px;border-radius:14px;margin:0 3px}
 .nav-btn.active{background:linear-gradient(135deg,var(--green),#00994d);color:#04120a;border-color:transparent;box-shadow:0 4px 16px rgba(34,255,136,.35)}
-.support-fab{position:fixed;right:14px;bottom:86px;z-index:25;width:52px;height:52px;border-radius:50%;border:1px solid var(--green);background:linear-gradient(135deg,#12a75a,#063);font-size:24px;cursor:pointer;box-shadow:0 0 24px rgba(34,255,136,.45)}
+.support-fab{position:fixed;right:14px;bottom:20px;z-index:25;width:52px;height:52px;border-radius:50%;border:1px solid var(--green);background:linear-gradient(135deg,#12a75a,#063);font-size:24px;cursor:pointer;box-shadow:0 0 24px rgba(34,255,136,.45)}
 .support-fab:active{transform:scale(.93)}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
@@ -241,7 +241,7 @@ img{max-width:100%}
 .modal-btns.single{display:block}
 .btn-sell{background:#2a2005;border:1px solid var(--gold);color:var(--gold);padding:12px;border-radius:12px;font-weight:800;cursor:pointer}
 .btn-keep{background:var(--green);border:none;color:#04120a;padding:12px;border-radius:12px;font-weight:900;cursor:pointer}
-.toast{position:fixed;bottom:150px;left:50%;transform:translateX(-50%);background:#0f2b1b;border:1px solid var(--green);color:var(--text);padding:10px 16px;border-radius:12px;z-index:60;font-size:14px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:90vw;text-align:center}
+.toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#0f2b1b;border:1px solid var(--green);color:var(--text);padding:10px 16px;border-radius:12px;z-index:60;font-size:14px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:90vw;text-align:center}
 
 /* hero buttons */
 .hero-btns{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px;margin-top:12px;position:relative;z-index:1}
