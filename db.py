@@ -9,6 +9,8 @@ _lock = threading.Lock()
 START_BALANCE = 0
 WITHDRAW_MIN = 41  # вывод мемов только от 41 GG
 WITHDRAW_DELAY = 3600  # не раньше часа после выигрыша
+WD_HOURS = (12, 22)  # окно вывода по МСК: с 12:00 до 22:00
+WD_GAP = 3600  # час между заявками одного игрока
 
 
 def _conn():
@@ -194,6 +196,19 @@ def wd_create(tg_id: int, item_id: int, roblox: str, slot_ts: int):
     roblox = (roblox or "").strip()[:32]
     if len(roblox) < 2:
         return None, "no_nick"
+    # окно 12:00–22:00 МСК
+    msk_hour = ((slot_ts + 3 * 3600) % 86400) // 3600
+    if not (WD_HOURS[0] <= msk_hour < WD_HOURS[1]):
+        return None, "hours"
+    # одна активная заявка + час между заявками
+    with _lock, _conn() as c:
+        row = c.execute("SELECT COUNT(*), MAX(created_ts) FROM withdraws WHERE tg_id=? AND status IN ('pending','asked')",
+                        (tg_id,)).fetchone()
+        if row[0] > 0:
+            return None, "one_active"
+        last = c.execute("SELECT MAX(created_ts) FROM withdraws WHERE tg_id=?", (tg_id,)).fetchone()[0]
+        if last and now - last < WD_GAP:
+            return None, "hour_cd"
     with _lock, _conn() as c:
         c.execute("UPDATE inventory SET status='withdraw_pending' WHERE id=?", (item_id,))
         cur = c.execute("""INSERT INTO withdraws(tg_id, item_id, name, price, roblox, slot_ts, created_ts)
