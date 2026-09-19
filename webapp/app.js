@@ -215,14 +215,22 @@ async function api(path, body, method, timeoutMs) {
     return await r.json();
   } catch(e) { clearTimeout(to); return null; }
 }
+let _connecting = false;
 async function initBackend() {
-  if (!BACKEND_URL || !tg?.initData) return;
+  if (!BACKEND_URL || !tg?.initData || serverMode || _connecting) return;
+  _connecting = true;
   let me = null;
   for (let i = 0; i < 4 && !me; i++) { // бесплатный сервер просыпается до минуты
     if (i > 0) toast('Сервер просыпается, пробую ещё…');
     me = await api('/api/me', null, null, 25000);
   }
-  if (!me || !me.ok) { toast('Нет связи с сервером, пробую переподключиться'); setTimeout(() => { if (!serverMode) initBackend(); }, 30000); return; }
+  _connecting = false;
+  if (!me || !me.ok) { // хост лёг — показываем заглушку, ретраим в фоне
+    document.getElementById('hostModal').classList.remove('hidden');
+    setTimeout(() => { if (!serverMode) initBackend(); }, 20000);
+    return;
+  }
+  document.getElementById('hostModal').classList.add('hidden');
   serverMode = true;
   toast('Общий баланс подключён');
   if (!localStorage.getItem('ggurm_imported')) {
@@ -716,7 +724,7 @@ function openSupport() {
   const url = `https://t.me/${BOT_USERNAME}?start=support`;
   if (tg?.openTelegramLink) tg.openTelegramLink(url);
   else window.open(url, '_blank');
-  toast('Напиши вопрос в чат с ботом — админ ответит туда же');
+  toast('Открываю чат с ботом — напиши туда свою проблему');
 }
 document.getElementById('supportFab').onclick = openSupport;
 
@@ -729,5 +737,9 @@ setInterval(() => {
   document.getElementById('heroTimer').textContent = fmtLeft(left);
 }, 1000);
 
+document.getElementById('hostRetry').onclick = () => {
+  document.getElementById('hostModal').classList.add('hidden');
+  initBackend();
+};
 paintSound();
 render(); initBackend(); loadLive();

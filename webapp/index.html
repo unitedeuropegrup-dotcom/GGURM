@@ -6,7 +6,7 @@
 <title>GGУРМ — Кейсы</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -368,6 +368,16 @@
 </div>
 
 <div class="toast hidden" id="toast"></div>
-<script src="app.js?v=3"></script>
+
+<!-- ХОСТ ЛЁГ -->
+<div class="modal hidden" id="hostModal">
+  <div class="quest-card">
+    <div class="quest-icon t">!</div>
+    <h2>Хост лёг, ожидаем...</h2>
+    <p class="quest-sub">Сервер перезапускается. Приложение подключится само.</p>
+    <button class="btn-open big" id="hostRetry">ПОВТОРИТЬ</button>
+  </div>
+</div>
+<script src="app.js?v=4"></script>
 </body>
 </html>
