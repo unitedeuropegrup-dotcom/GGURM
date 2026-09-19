@@ -64,7 +64,7 @@ async def start(m: types.Message, command: CommandStart):
     if args.startswith("deposit"):
         return await show_deposit(m)
     if args.startswith("support"):
-        await m.answer("Напишите свою проблему и мы её попытаемся решить.")
+        await m.answer("Опишите вашу проблему и мы постараемся её решить.")
     rows = []
     if WEBAPP_URL.startswith("https://"):
         rows.append([InlineKeyboardButton(text="🚀 Играть!", web_app=WebAppInfo(url=WEBAPP_URL))])
@@ -297,7 +297,7 @@ async def support_photo(m: types.Message, bot: Bot):
 
 @dp.message(Command("support"))
 async def cmd_support(m: types.Message):
-    await m.answer("Напишите свою проблему и мы её попытаемся решить.")
+    await m.answer("Опишите вашу проблему и мы постараемся её решить.")
 
 
 @dp.message(F.text.lower().in_({"баланс", "профиль", "кейс", "бесплатный", "кейсы", "пополнить", "депозит", "звезды", "звёзды"}))
