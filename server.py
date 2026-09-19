@@ -29,6 +29,7 @@ WEBAPP_DIR = os.path.join(BASE_DIR, "webapp")
 
 FREE_CD_MS = 12 * 3600
 SECRET_PRICE = 89
+STAR_RATE = 2  # 1 звезда = 2 GG
 FREE_W = [(2, 69), (5, 15), (12, 8), (30, 4), (60, 2), (150, 1.2), (300, 0.5), (1000, 0.3)]
 SECRET_W = [("Мем Из 2026", "М", 39, 49), ("Акула Пон", "А", 48, 27.98), ("Векосини Сигмаини", "В", 98, 10)]
 
@@ -278,9 +279,9 @@ def api_promo(body: PromoIn):
 async def api_invoice(body: InvoiceIn):
     u = need_user(body.initData)
     uid = int(u["id"])
-    if body.stars not in _pack:
-        raise HTTPException(400, "no package")
-    base = _pack[body.stars]
+    if not (1 <= body.stars <= 10000):
+        raise HTTPException(400, "stars 1..10000")
+    base = body.stars * STAR_RATE
     st = db.get_user(uid)
     bonus = 1 if st["bonus"] else 0
     payload = f"app_{uid}_{body.stars}_{base}_{bonus}"

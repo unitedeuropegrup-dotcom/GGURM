@@ -215,12 +215,10 @@ async function api(path, body, method) {
   } catch(e) { return null; }
 }
 async function initBackend() {
-  document.getElementById('modeLabel').textContent = 'Офлайн';
   if (!BACKEND_URL || !tg?.initData) return;
   const me = await api('/api/me');
   if (!me || !me.ok) return;
   serverMode = true;
-  document.getElementById('modeLabel').textContent = 'Онлайн';
   if (!localStorage.getItem('ggurm_imported')) {
     const im = await api('/api/import', { balance, won: wonTotal });
     if (im && im.ok) {
@@ -315,10 +313,15 @@ document.getElementById('caseSearchHome').oninput = e => {
 
 // ---------- HERO / ОПЛАТА / ПРОМО ----------
 document.getElementById('depositBtn').onclick = () => {
-  if (serverMode && tg?.openInvoice) {
-    document.getElementById('payPacks').innerHTML = PACKS.map(([s,g]) =>
-      `<button class="pay-pack" data-s="${s}"><b>${s} звёзд</b><span>→ ${g} GG</span></button>`).join('');
-    document.querySelectorAll('.pay-pack').forEach(b => b.onclick = () => buyPack(+b.dataset.s));
+  if (serverMode && tg?.openInvoice) { // оплата внутри приложения, сумма своя
+    const chips = document.getElementById('payChips');
+    chips.innerHTML = [25, 50, 100, 500].map(s => `<button class="pay-chip" data-s="${s}">${s}</button>`).join('');
+    chips.querySelectorAll('.pay-chip').forEach(b => b.onclick = () => {
+      document.getElementById('payStars').value = b.dataset.s;
+      updPayPreview();
+    });
+    document.getElementById('payStars').value = '';
+    updPayPreview();
     document.getElementById('payModal').classList.remove('hidden');
     return;
   }
@@ -327,7 +330,18 @@ document.getElementById('depositBtn').onclick = () => {
   else window.open(url, '_blank');
   toast('Оплата звёздами — в чате с ботом. Чек вставь в ПРОМОКОД');
 };
+function updPayPreview() {
+  const s = parseInt(document.getElementById('payStars').value, 10);
+  document.getElementById('payPreview').textContent =
+    (s >= 1 && s <= 10000) ? `${s} звёзд → ${s * 2} GG` : 'Введи количество звёзд (1–10000)';
+}
 document.getElementById('payClose').onclick = () => document.getElementById('payModal').classList.add('hidden');
+document.getElementById('payStars').oninput = updPayPreview;
+document.getElementById('payGo').onclick = () => {
+  const s = parseInt(document.getElementById('payStars').value, 10);
+  if (!(s >= 1 && s <= 10000)) { sfx.error(); return toast('Введи от 1 до 10000 звёзд'); }
+  buyPack(s);
+};
 async function buyPack(stars) {
   document.getElementById('payModal').classList.add('hidden');
   const inv = await api('/api/invoice', { stars });

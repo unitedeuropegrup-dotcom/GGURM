@@ -63,7 +63,7 @@
 </nav>
 
 <div class="layout">
-  <!-- ЛУЧШИЙ ДРОП: только реальные выигрыши (твои + позже с backend всех игроков) -->
+  <!-- ЛУЧШИЙ ДРОП: реальные выигрыши игроков -->
   <aside class="live">
     <div class="live-title">🔥 ЛУЧШИЙ ДРОП</div>
     <div class="live-feed" id="liveFeed"></div>
@@ -211,7 +211,6 @@
             <button class="btn-keep" id="copyRef">Копировать</button>
           </div>
         </div>
-        <p class="hint">Проверка репоста и награды за друзей появятся с backend.</p>
       </div>
       <section class="section-title"><h2>ИНВЕНТАРЬ</h2><div class="line"></div></section>
       <div class="meme-btns">
@@ -225,7 +224,6 @@
       <h1 class="big-title">НАСТРОЙКИ</h1>
       <div class="settings">
         <button class="set-row" id="soundRow"><span>Звуки</span><span class="switch on" id="soundSwitch"><i></i></span></button>
-        <div class="set-row static"><span>Режим</span><b id="modeLabel">Офлайн</b></div>
         <div class="set-row static"><span>Версия</span><b>GGУРМ 1.0</b></div>
       </div>
       <div id="adminBox" class="hidden">
@@ -336,8 +334,11 @@
     <button class="quest-close" id="payClose">✕</button>
     <div class="quest-icon">⭐</div>
     <h2>Пополнение</h2>
-    <p class="quest-sub">Курс: <b class="green">1 ⭐ = 2 GG</b><span id="payBonusNote"></span></p>
-    <div class="pay-packs" id="payPacks"></div>
+    <p class="quest-sub">Курс: <b class="green">1 звезда = 2 GG</b><span id="payBonusNote"></span></p>
+    <div class="pay-chips" id="payChips"></div>
+    <input class="search" id="payStars" type="number" min="1" max="10000" inputmode="numeric" placeholder="Сколько звёзд?">
+    <div class="pay-preview" id="payPreview">Введи количество звёзд</div>
+    <button class="btn-open big" id="payGo">ОПЛАТИТЬ</button>
     <p class="quest-sub small">Оплата звёздами внутри приложения. GG падают на баланс сразу.</p>
   </div>
 </div>

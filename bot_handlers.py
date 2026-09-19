@@ -10,9 +10,9 @@ import db
 
 log = logging.getLogger("ggurm")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "5355350906") or 0)  # создатель бота @nojexo
-# USE_CODES=1 (по умолчанию): после оплаты бот выдаёт чек GGDP-... — вводится в ПРОМОКОД, работает без backend.
-# USE_CODES=0: GG начисляются сразу в общую БД (нужен поднятый server.py + BACKEND_URL во фронте).
-USE_CODES = os.getenv("USE_CODES", "1") == "1"
+# USE_CODES=0 (по умолчанию): GG начисляются сразу в общую БД (нужен server.py онлайн).
+# USE_CODES=1: после оплаты бот выдаёт чек GGDP-... (офлайн-режим без backend).
+USE_CODES = os.getenv("USE_CODES", "0") == "1"
 
 WEBAPP_URL = ""
 STAR_RATE = 2  # 1 звезда = 2 GG

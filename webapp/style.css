@@ -267,6 +267,12 @@ img{max-width:100%}
 .quest-card .btn-open{margin-top:6px}
 .quest-card .search{margin-bottom:12px;text-align:center;font-weight:800;letter-spacing:1px}
 .pay-packs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 12px}
+.pay-chips{display:flex;gap:8px;margin:4px 0 10px}
+.pay-chip{flex:1;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:10px;color:var(--gold);font-weight:800;padding:10px 4px;cursor:pointer}
+.pay-chip:active{border-color:var(--gold)}
+.pay-preview{text-align:center;color:var(--gold);font-weight:900;font-size:17px;margin:2px 0 10px;min-height:24px}
+#payModal .search{margin-bottom:10px}
+#payModal .btn-open{margin-bottom:10px}
 .pay-pack{background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:12px;padding:12px 8px;cursor:pointer;color:var(--text);display:flex;flex-direction:column;gap:4px;align-items:center}
 .pay-pack:active{transform:scale(.97);border-color:var(--green)}
 .pay-pack b{font-size:16px;color:var(--gold)}
