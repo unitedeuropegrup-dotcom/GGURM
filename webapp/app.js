@@ -222,7 +222,7 @@ async function initBackend() {
     if (i > 0) toast('Сервер просыпается, пробую ещё…');
     me = await api('/api/me', null, null, 25000);
   }
-  if (!me || !me.ok) { toast('Нет связи с сервером — офлайн-режим'); return; }
+  if (!me || !me.ok) { toast('Нет связи с сервером, пробую переподключиться'); setTimeout(() => { if (!serverMode) initBackend(); }, 30000); return; }
   serverMode = true;
   toast('Общий баланс подключён');
   if (!localStorage.getItem('ggurm_imported')) {
@@ -632,7 +632,7 @@ async function openWd(presetId) {
 }
 async function loadWdHistory() {
   const el = document.getElementById('wdHistory');
-  if (!serverMode) { el.innerHTML = '<div class="empty">История появится после подключения backend</div>'; return; }
+  if (!serverMode) { el.innerHTML = '<div class="empty">Нет связи с сервером, попробуй позже</div>'; return; }
   const r = await api('/api/withdraws');
   const st = { pending: 'ожидает времени', asked: 'подтверди в боте', confirmed: 'подтверждена', cancelled: 'отменена' };
   el.innerHTML = (r && r.ok && r.items.length) ? r.items.map(w =>
@@ -647,7 +647,7 @@ document.getElementById('wdSubmit').onclick = async () => {
   if (nick.length < 2) { sfx.error(); return toast('Введи ник в Roblox'); }
   const when = new Date(document.getElementById('wdWhen').value).getTime();
   if (!when || isNaN(when)) { sfx.error(); return toast('Выбери дату и время'); }
-  if (!serverMode) { sfx.error(); return toast('Вывод включается с backend — дождись подключения'); }
+  if (!serverMode) { sfx.error(); return toast('Нет связи с сервером, попробуй позже'); }
   const r = await api('/api/withdraw', { item_id: +wdSel, roblox: nick, slot_ts: Math.floor(when / 1000) });
   if (r && r.ok) {
     document.getElementById('wdModal').classList.add('hidden');

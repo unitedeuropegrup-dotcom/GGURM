@@ -75,6 +75,8 @@ img{max-width:100%}
 .live-item.top{border-color:var(--gold);box-shadow:0 0 14px rgba(255,207,64,.25)}
 @media(min-width:1024px){
   .layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:8px;align-items:start}
+  #tab-home{max-width:920px;margin:0 auto;width:100%}
+  #tab-profile,#tab-settings{max-width:720px;margin:0 auto;width:100%}
   .live{position:sticky;top:130px;max-height:calc(100vh - 150px);overflow-y:auto}
   .live-feed{flex-direction:column;overflow:visible}
   .content{max-width:100%;width:100%}
