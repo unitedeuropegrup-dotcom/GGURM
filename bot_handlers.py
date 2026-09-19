@@ -1,0 +1,182 @@
+"""Хендлеры бота GGУРМ. Используются и локальным bot.py, и server.py (общая БД)."""
+from aiogram import Dispatcher, types, F
+from aiogram.filters import CommandStart, Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, LabeledPrice
+from aiogram import Bot
+import logging
+import os
+import secrets
+import db
+
+log = logging.getLogger("ggurm")
+# USE_CODES=1 (по умолчанию): после оплаты бот выдаёт чек GGDP-... — вводится в ПРОМОКОД, работает без backend.
+# USE_CODES=0: GG начисляются сразу в общую БД (нужен поднятый server.py + BACKEND_URL во фронте).
+USE_CODES = os.getenv("USE_CODES", "1") == "1"
+
+WEBAPP_URL = ""
+STAR_RATE = 2  # 1 звезда = 2 GG
+PACKAGES = [(25, 50), (50, 100), (100, 200), (500, 1000)]  # (звёзды, GG)
+
+dp = Dispatcher()
+
+
+def configure(webapp_url: str):
+    global WEBAPP_URL
+    WEBAPP_URL = webapp_url or ""
+
+
+def main_kb():
+    if not WEBAPP_URL.startswith("https://"):
+        return InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💳 Пополнить за ⭐", callback_data="deposit")],
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🟢 Открыть GGУРМ", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton(text="📦 Бесплатный кейс", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton(text="💳 Пополнить за ⭐", callback_data="deposit")],
+    ])
+
+
+def deposit_kb():
+    rows = [[InlineKeyboardButton(text=f"⭐ {s} → {g} GG", callback_data=f"buy:{s}:{g}")]
+            for s, g in PACKAGES]
+    if WEBAPP_URL.startswith("https://"):
+        rows.append([InlineKeyboardButton(text="🟢 Открыть GGУРМ", web_app=WebAppInfo(url=WEBAPP_URL))])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+DEPOSIT_TEXT = (
+    "💳 <b>Пополнение за звёзды</b>\n\n"
+    f"Курс: <b>1 ⭐ = {STAR_RATE} GG</b>\n"
+    "Промокод <b>GGURM</b> даёт +15% (вводится в приложении, в разделе ПРОМОКОД).\n\n"
+    "Выбери пакет 👇"
+)
+
+
+async def show_deposit(message: types.Message):
+    await message.answer(DEPOSIT_TEXT, parse_mode="HTML", reply_markup=deposit_kb())
+
+
+@dp.message(CommandStart())
+async def start(m: types.Message, command: CommandStart):
+    args = command.args or ""
+    if args.startswith("deposit"):
+        return await show_deposit(m)
+    rows = []
+    if WEBAPP_URL.startswith("https://"):
+        rows.append([InlineKeyboardButton(text="Играть!", web_app=WebAppInfo(url=WEBAPP_URL))])
+    rows.append([InlineKeyboardButton(text="Новости", url="https://t.me/GGURMNEWS"),
+                 InlineKeyboardButton(text="Поддержка", callback_data="support")])
+    kb = InlineKeyboardMarkup(inline_keyboard=rows)
+    ref = ""
+    if args.startswith("ref_"):
+        ref = "\nТы пришёл по реферальной ссылке — удачи в кейсах!"
+    text = (
+        f"Добро пожаловать в GGУРМ!{ref}\n\n"
+        "Первые официальные кейсы!\n"
+        "» Открывай кейсы\n"
+        "» Забирай бесплатный кейс каждые 12 часов\n"
+        "» Пополняй баланс за звёзды\n\n"
+        "Испытай удачу с нами!"
+    )
+    await m.answer(text, reply_markup=kb)
+
+
+@dp.callback_query(F.data == "support")
+async def cb_support(cq: types.CallbackQuery):
+    await cq.answer("Поддержка скоро появится. Новости — в канале GGURMNEWS.", show_alert=True)
+
+
+@dp.message(Command("deposit"))
+async def cmd_deposit(m: types.Message):
+    await show_deposit(m)
+
+
+@dp.callback_query(F.data == "no_url")
+async def no_url(cq: types.CallbackQuery):
+    await cq.answer("Сначала задеплой webapp/ на Vercel и задай WEBAPP_URL", show_alert=True)
+
+
+@dp.callback_query(F.data == "deposit")
+async def cb_deposit(cq: types.CallbackQuery):
+    await cq.answer()
+    await show_deposit(cq.message)
+
+
+@dp.callback_query(F.data.startswith("buy:"))
+async def cb_buy(cq: types.CallbackQuery, bot: Bot):
+    try:
+        _, s, g = cq.data.split(":")
+        s, g = int(s), int(g)
+    except ValueError:
+        return await cq.answer("Ошибка пакета", show_alert=True)
+    if (s, g) not in PACKAGES:
+        return await cq.answer("Такого пакета нет", show_alert=True)
+    await cq.answer()
+    try:
+        await bot.send_invoice(
+            chat_id=cq.message.chat.id,
+            title=f"{g} GG коинов",
+            description=f"Пополнение баланса GGУРМ: {s} ⭐ = {g} GG",
+            payload=f"gg_{cq.from_user.id}_{s}_{g}",
+            currency="XTR",
+            prices=[LabeledPrice(label=f"{g} GG", amount=s)],
+            provider_token="",
+        )
+    except Exception as e:
+        log.exception("send_invoice failed")
+        await cq.message.answer("😕 Не получилось создать счёт. Попробуй позже или напиши в поддержку.")
+
+
+@dp.pre_checkout_query()
+async def pre_checkout(q: types.PreCheckoutQuery):
+    await q.answer(ok=True)
+
+
+@dp.message(F.successful_payment)
+async def success(m: types.Message):
+    """Оплата прошла — GG падают на баланс моментально (общая БД)."""
+    sp = m.successful_payment
+    uid, g = m.from_user.id, 0
+    parts = (sp.invoice_payload or "").split("_")
+    try:
+        if len(parts) == 5 and parts[0] == "app":
+            # app_<uid>_<stars>_<base>_<bonusflag> — счёт из Mini App
+            uid, base = int(parts[1]), int(parts[3])
+            g = base
+            u = db.get_user(uid)
+            if parts[4] == "1" and u["bonus"]:
+                g = int(base * 1.15)
+                db.set_bonus(uid, 0)
+        elif len(parts) == 4 and parts[0] == "gg":
+            # gg_<uid>_<stars>_<gg> — счёт из чата
+            uid, g = int(parts[1]), int(parts[3])
+    except (ValueError, IndexError):
+        uid, g = m.from_user.id, 0
+    if g > 0:
+        if USE_CODES:
+            code = f"GGDP-{uid}-{g}-{secrets.token_hex(3).upper()}"
+            await m.answer(
+                f"✅ Оплата прошла: <b>{sp.total_amount} ⭐ → {g} GG</b>!\n\n"
+                f"Твой чек:\n<code>{code}</code>\n\n"
+                "Вставь его в приложении: Главная → ПРОМОКОД — и GG упадут на баланс.",
+                parse_mode="HTML",
+            )
+            return
+        u = db.get_user(uid)
+        if u["bonus"]:
+            g = int(g * 1.15)
+            db.set_bonus(uid, 0)
+        new_bal = db.add_balance(uid, g)
+        await m.answer(
+            f"✅ Оплата прошла: <b>{sp.total_amount} ⭐ → {g} GG</b>!\n\n"
+            f"Баланс: <b>{new_bal} GG</b> — уже в приложении, обнови Mini App 💰",
+            parse_mode="HTML",
+        )
+    else:
+        await m.answer("Оплата прошла, но пакет не распознан — напиши в поддержку.", parse_mode="HTML")
+
+
+@dp.message(F.text.lower().in_({"баланс", "профиль", "кейс", "бесплатный", "кейсы", "пополнить", "депозит", "звезды", "звёзды"}))
+async def fallback(m: types.Message):
+    await m.answer("Жми кнопку, чтобы открыть GGУРМ 👇", reply_markup=main_kb())

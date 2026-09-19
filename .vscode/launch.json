@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🤖 Запустить GGУРМ бота",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        // Вставь свои значения ПЕРЕД запуском (токен никому не показывай)
+        "BOT_TOKEN": "вставь-токен-сюда",
+        "WEBAPP_URL": "вставь-ссылку-с-vercel-сюда"
+      }
+    }
+  ]
+}

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GGУРМ — Кейсы</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<header class="header">
+  <button class="icon-btn burger" id="burgerBtn" aria-label="Меню">☰</button>
+  <div class="logo">
+    <img class="logo-img" src="assets/logo.jpg" alt="GGУРМ">
+    <div class="logo-text">GG<span>УРМ</span></div>
+  </div>
+  <div class="header-right">
+    <div class="balance-pill">
+      <img class="gg-img" src="assets/ggcoin.png" alt="GG">
+      <b id="balanceTop">500</b>
+    </div>
+    <button class="icon-btn" id="gearBtn" aria-label="Настройки">⚙</button>
+  </div>
+</header>
+
+<!-- БОКОВОЕ МЕНЮ (мобильное, как у Brainrot) -->
+<div class="drawer-wrap hidden" id="drawerWrap">
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer">
+    <div class="drawer-head">
+      <img class="logo-img" src="assets/logo.jpg" alt="">
+      <b>GG<span>УРМ</span></b>
+      <button class="quest-close" id="drawerClose">✕</button>
+    </div>
+    <button class="drawer-item active" data-goto="home">🏠 Главная</button>
+    <button class="drawer-item" data-goto="cases">📦 Кейсы</button>
+    <button class="drawer-item" data-soon="Апгрейдер">⬆ Апгрейдер</button>
+    <button class="drawer-item" data-soon="Батл">🛡 Батл</button>
+    <button class="drawer-item" data-soon="Дайсы">🎲 Дайсы</button>
+    <button class="drawer-item" data-soon="Краш">🚀 Краш</button>
+    <button class="drawer-item" data-soon="Квесты">📋 Квесты</button>
+    <button class="drawer-item" data-soon="Розыгрыши">🏆 Розыгрыши</button>
+    <button class="drawer-item" data-soon="FAQ">❓ FAQ</button>
+    <button class="drawer-item" data-soon="Бонусы">🎁 Бонусы</button>
+    <button class="drawer-item" data-goto="profile">👤 Профиль</button>
+    <button class="drawer-item" id="drawerSupport">💬 Поддержка</button>
+  </aside>
+</div>
+
+<!-- ВЕРХНЕЕ МЕНЮ (видно только на ПК) -->
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <button class="tnav-btn logo-mini"><img class="logo-img mini" src="assets/logo.jpg" alt="">GG<span>УРМ</span></button>
+    <button class="tnav-btn active" data-goto="home">ГЛАВНАЯ</button>
+    <button class="tnav-btn" data-goto="cases">КЕЙСЫ</button>
+    <button class="tnav-btn" data-soon="Апгрейдер">⬆ АПГРЕЙДЕР</button>
+    <button class="tnav-btn" data-soon="Батл">🛡 БАТЛ</button>
+    <button class="tnav-btn" data-soon="Дайсы">🎲 ДАЙСЫ</button>
+    <button class="tnav-btn" data-soon="Краш">🚀 КРАШ</button>
+    <button class="tnav-btn" data-soon="Квесты">📋 КВЕСТЫ</button>
+    <button class="tnav-btn" data-soon="Розыгрыши">🏆 РОЗЫГРЫШИ</button>
+    <button class="tnav-btn" data-soon="FAQ">❓ FAQ</button>
+    <button class="tnav-btn" data-soon="Бонусы">🎁 БОНУСЫ</button>
+    <button class="tnav-btn" data-goto="profile">ПРОФИЛЬ</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- ЛУЧШИЙ ДРОП: только реальные выигрыши (твои + позже с backend всех игроков) -->
+  <aside class="live">
+    <div class="live-title">🔥 ЛУЧШИЙ ДРОП</div>
+    <div class="live-feed" id="liveFeed"></div>
+  </aside>
+
+  <div class="content">
+    <main id="tab-home" class="tab active">
+      <section class="profile-card">
+        <div class="profile-bg"></div>
+        <div class="profile-row">
+          <div class="avatar" id="avatar">G</div>
+          <div class="profile-info">
+            <div class="profile-name" id="userName">Гость</div>
+            <div class="profile-sub" id="userHandle">@guest • ID 0</div>
+            <div class="profile-stats">
+              <div class="stat"><span>Открыто</span><b id="statOpened">0</b></div>
+              <div class="stat"><span>Выиграно</span><b id="statWon">0 GG</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="balance-row">
+          <div class="balance-box">
+            <span class="label">БАЛАНС</span>
+            <div class="balance-val"><img class="gg-img big" src="assets/ggcoin.png" alt="GG"><b id="balanceMain">500</b><small>GG</small></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="hero">
+        <div class="hero-badge">АВТО-ПРОМОКОД • GGУРМ</div>
+        <h1>КАЖДЫЕ 2 ЧАСА<br>НОВЫЙ БОНУС К ДЕПОЗИТУ</h1>
+        <div class="hero-grid">
+          <div><span>ОСТАЛОСЬ</span><b id="heroTimer">01:52:02</b></div>
+          <div><span>ПРОМОКОД</span><b class="green">GGURM</b></div>
+          <div><span>БОНУС</span><b class="green">+15%</b></div>
+        </div>
+        <div class="hero-btns">
+          <button class="h-btn" data-goto="cases">ОТКРЫТЬ КЕЙС</button>
+          <button class="h-btn primary" id="depositBtn">⦿ ПОПОЛНИТЬ</button>
+          <button class="h-btn" id="promoBtn">ПРОМОКОД</button>
+        </div>
+      </section>
+
+      <section class="free-banner" id="freeBannerGo">
+        <img src="assets/cases/free.png" alt="" onerror="this.remove()">
+        <div class="free-info">
+          <span class="free-tag">БЕСПЛАТНО</span>
+          <b>Бесплатный</b>
+          <small>каждые 12 часов</small>
+        </div>
+        <button class="btn-open small">ОТКРЫТЬ</button>
+      </section>
+
+      <div class="filter-label">Быстрый фильтр</div>
+      <input class="search" id="caseSearchHome" placeholder="Поиск кейса">
+
+    </main>
+
+    <main id="tab-cases" class="tab">
+      <h1 class="big-title">КЕЙСЫ</h1>
+      <input class="search" id="caseSearch" placeholder="Поиск кейса">
+      <section class="cases-grid" id="casesGrid">
+        <div class="case-card featured" id="openFreeCase">
+          <div class="case-photo">
+            <img src="assets/cases/free.png" alt="Бесплатный кейс" onerror="this.remove()">
+            <div class="photo-placeholder">
+              <svg class="case-art" viewBox="0 0 200 160">
+                <defs><linearGradient id="cb1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1aff7a"/><stop offset="1" stop-color="#006633"/></linearGradient></defs>
+                <ellipse cx="100" cy="142" rx="70" ry="9" fill="rgba(34,255,136,.15)"/>
+                <rect x="82" y="34" width="36" height="22" rx="9" fill="none" stroke="url(#cb1)" stroke-width="5"/>
+                <rect x="40" y="50" width="120" height="86" rx="12" fill="#0d2115" stroke="url(#cb1)" stroke-width="3"/>
+                <rect x="40" y="79" width="120" height="6" fill="url(#cb1)" opacity=".7"/>
+                <rect x="90" y="73" width="20" height="24" rx="4" fill="url(#cb1)"/>
+                <circle cx="100" cy="85" r="3" fill="#04120a"/>
+                <circle cx="60" cy="65" r="4" fill="none" stroke="#22ff88" stroke-width="2" opacity=".6"/>
+                <circle cx="140" cy="65" r="4" fill="none" stroke="#22ff88" stroke-width="2" opacity=".6"/>
+                <text x="100" y="124" text-anchor="middle" font-family="Russo One,sans-serif" font-size="26" fill="#22ff88">GG</text>
+              </svg>
+            </div>
+            <div class="case-glow"></div>
+          </div>
+          <div class="case-name">БЕСПЛАТНЫЙ</div>
+          <div class="case-footer">
+            <span class="items">8 предм.</span>
+            <span class="price">0 <img class="gg-img mini" src="assets/ggcoin.png" alt="G"></span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <main id="tab-case" class="tab">
+      <button class="back-btn" data-goto="cases">← Назад к кейсам</button>
+      <h1 class="big-title">БЕСПЛАТНЫЙ</h1>
+      <div class="case-detail">
+        <div class="detail-left">
+          <div class="case-photo large">
+            <img src="assets/cases/free.png" alt="Бесплатный кейс" onerror="this.remove()">
+            <div class="photo-placeholder">
+              <svg class="case-art" viewBox="0 0 200 160">
+                <defs><linearGradient id="cb2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1aff7a"/><stop offset="1" stop-color="#006633"/></linearGradient></defs>
+                <ellipse cx="100" cy="142" rx="70" ry="9" fill="rgba(34,255,136,.15)"/>
+                <rect x="82" y="34" width="36" height="22" rx="9" fill="none" stroke="url(#cb2)" stroke-width="5"/>
+                <rect x="40" y="50" width="120" height="86" rx="12" fill="#0d2115" stroke="url(#cb2)" stroke-width="3"/>
+                <rect x="40" y="79" width="120" height="6" fill="url(#cb2)" opacity=".7"/>
+                <rect x="90" y="73" width="20" height="24" rx="4" fill="url(#cb2)"/>
+                <circle cx="100" cy="85" r="3" fill="#04120a"/>
+                <circle cx="60" cy="65" r="4" fill="none" stroke="#22ff88" stroke-width="2" opacity=".6"/>
+                <circle cx="140" cy="65" r="4" fill="none" stroke="#22ff88" stroke-width="2" opacity=".6"/>
+                <text x="100" y="124" text-anchor="middle" font-family="Russo One,sans-serif" font-size="26" fill="#22ff88">GG</text>
+              </svg>
+            </div>
+          </div>
+          <h2>Бесплатный</h2>
+          <div class="free-note">🎁 Бесплатный кейс • каждые 12 часов</div>
+          <button class="btn-open big" id="openCaseBtn">ОТКРЫТЬ КЕЙС</button>
+          <div class="speed-row">
+            <button class="speed active" data-speed="slow">Медленная</button>
+            <button class="speed" data-speed="fast">Быстрая</button>
+          </div>
+          <div class="roulette-wrap hidden" id="rouletteWrap">
+            <div class="roulette-pointer"></div>
+            <div class="roulette" id="roulette"><div class="roulette-track" id="rouletteTrack"></div></div>
+            <div class="spin-status" id="spinStatus">Крутим...</div>
+          </div>
+        </div>
+        <div class="detail-right">
+          <div class="drop-title">ЧТО МОЖЕТ ВЫПАСТЬ</div>
+          <div class="drop-grid" id="dropGrid"></div>
+        </div>
+      </div>
+    </main>
+
+    <main id="tab-profile" class="tab">
+      <h1 class="big-title">ПРОФИЛЬ</h1>
+      <div class="profile-big">
+        <div class="avatar xl" id="avatar2">G</div>
+        <h2 id="userName2">Гость</h2>
+        <p id="userHandle2">@guest</p>
+        <div class="promo">
+          <span>Твоя реферальная ссылка на бота</span>
+          <div class="promo-code small" id="refLink">...</div>
+          <div class="ref-btns">
+            <button class="btn-share" id="shareBtn2">📤 Поделиться</button>
+            <button class="btn-keep" id="copyRef">Копировать</button>
+          </div>
+        </div>
+        <p class="hint">Проверка репоста и награды за друзей появятся с backend.</p>
+      </div>
+    </main>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-goto="home">ГЛАВНАЯ</button>
+  <button class="nav-btn" data-goto="cases">КЕЙСЫ</button>
+  <button class="nav-btn" data-goto="profile">ПРОФИЛЬ</button>
+</nav>
+
+<button class="support-fab" id="supportFab" title="Поддержка">💬</button>
+
+<footer class="footer" id="footerTag">@ggurm_bot</footer>
+
+<!-- МОДАЛКА ЗАДАНИЙ (как на скрине: поделись в любом чате + ГОТОВО) -->
+<div class="modal hidden" id="questModal">
+  <div class="quest-card">
+    <button class="quest-close" id="questClose">✕</button>
+    <div class="quest-icon">🎁</div>
+    <h2>Выполни задания</h2>
+    <p class="quest-sub">Чтобы открыть бесплатный кейс, нужно выполнить всё ниже — и так каждый раз перед новым прокрутом.</p>
+    <button class="quest-task" id="questShare">
+      <span class="qt-icon">✈️</span>
+      <span class="qt-text">Поделитесь сообщением в любом чате</span>
+      <span class="qt-state" id="questShareState">→</span>
+    </button>
+    <button class="quest-task" id="questChannel">
+      <span class="qt-icon">📢</span>
+      <span class="qt-text">Подпишитесь на канал GGURMNEWS</span>
+      <span class="qt-state" id="questChannelState">→</span>
+    </button>
+    <button class="btn-open big" id="questDone">ГОТОВО</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА ПРОМОКОДА -->
+<div class="modal hidden" id="promoModal">
+  <div class="quest-card">
+    <button class="quest-close" id="promoClose">✕</button>
+    <div class="quest-icon">🏷️</div>
+    <h2>Промокод</h2>
+    <p class="quest-sub">GGURM — +15% к следующему пополнению. Чек из чата бота (после оплаты звёздами) — вставь сюда.</p>
+    <input class="search" id="promoInput" placeholder="GGURM" autocapitalize="characters">
+    <button class="btn-open big" id="promoApply">АКТИВИРОВАТЬ</button>
+  </div>
+</div>
+
+<!-- ОКНО ОПЛАТЫ (пакеты звёзд, внутри приложения) -->
+<div class="modal hidden" id="payModal">
+  <div class="quest-card">
+    <button class="quest-close" id="payClose">✕</button>
+    <div class="quest-icon">⭐</div>
+    <h2>Пополнение</h2>
+    <p class="quest-sub">Курс: <b class="green">1 ⭐ = 2 GG</b><span id="payBonusNote"></span></p>
+    <div class="pay-packs" id="payPacks"></div>
+    <p class="quest-sub small">Оплата звёздами внутри приложения. GG падают на баланс сразу.</p>
+  </div>
+</div>
+
+<div class="modal hidden" id="winModal">
+  <div class="modal-card">
+    <div class="modal-glow"></div>
+    <div class="modal-sub">ВАШ ВЫИГРЫШ</div>
+    <div class="win-emoji" id="winEmoji"><img class="win-img" src="assets/ggcoin.png" alt="GG"></div>
+    <h2 id="winName">2 GG</h2>
+    <div class="win-price" id="winPrice">+2 GG на балансе</div>
+    <div class="modal-btns single">
+      <button class="btn-keep" id="collectBtn">ЗАБРАТЬ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

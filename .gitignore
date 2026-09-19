@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+ggurm.db
+.env
+.vercel
+Lib/
+Scripts/
+Include/
+pyvenv.cfg
+.venv/
+venv/
