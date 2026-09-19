@@ -201,7 +201,7 @@ async function loadLive() {
   } catch(e) { renderTop(); }
 }
 async function api(path, body, method, timeoutMs) {
-  if (!BACKEND_URL) return null;
+  if (!BACKEND_URL) { window._apiErr = 'no url'; return null; }
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), timeoutMs || 12000);
   try {
@@ -212,8 +212,10 @@ async function api(path, body, method, timeoutMs) {
       r = await fetch(BACKEND_URL + path, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ initData: tg?.initData || '', ...(body||{}) }), signal: ctrl.signal });
     }
     clearTimeout(to);
+    if (!r.ok) { window._apiErr = 'HTTP ' + r.status; return null; }
+    window._apiErr = '';
     return await r.json();
-  } catch(e) { clearTimeout(to); return null; }
+  } catch(e) { clearTimeout(to); window._apiErr = 'сеть/таймаут'; return null; }
 }
 let _connecting = false;
 async function initBackend() {
@@ -226,6 +228,7 @@ async function initBackend() {
   }
   _connecting = false;
   if (!me || !me.ok) { // хост лёг — показываем заглушку, ретраим в фоне
+    document.getElementById('hostErr').textContent = 'Причина: ' + (window._apiErr || 'нет ответа') + '. Проверь Render → Logs во время входа.';
     document.getElementById('hostModal').classList.remove('hidden');
     setTimeout(() => { if (!serverMode) initBackend(); }, 20000);
     return;
