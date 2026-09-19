@@ -59,20 +59,17 @@ document.getElementById('footerTag').textContent = '@' + BOT_USERNAME;
 // ---------- ДАННЫЕ ----------
 const GG_IMG = 'assets/ggcoin.png';
 const FREE_ITEMS = [
-  { name: '2 GG коина', img: GG_IMG, price: 2,    chance: 69,  worst: true },
-  { name: '5 GG',       img: GG_IMG, price: 5,    chance: 15 },
-  { name: '12 GG',      img: GG_IMG, price: 12,   chance: 8 },
-  { name: '30 GG',      img: GG_IMG, price: 30,   chance: 4 },
-  { name: '60 GG',      img: GG_IMG, price: 60,   chance: 2 },
-  { name: '150 GG',     img: GG_IMG, price: 150,  chance: 1.2 },
-  { name: '300 GG',     img: GG_IMG, price: 300,  chance: 0.5 },
-  { name: '1000 GG',    img: GG_IMG, price: 1000, chance: 0.3 },
+  { name: '2 GG коина', img: GG_IMG, price: 2,  chance: 70,  worst: true },
+  { name: '5 GG',       img: GG_IMG, price: 5,  chance: 15 },
+  { name: '12 GG',      img: GG_IMG, price: 12, chance: 8 },
+  { name: '30 GG',      img: GG_IMG, price: 30, chance: 4.5 },
+  { name: '60 GG',      img: GG_IMG, price: 60, chance: 2.5 },
 ];
 // Секретный: шансы как есть (сумма 86.98 — крутится по весам, добавь 4-й мем до 100%)
 const MEMES = [
   { name: 'Мем Из 2026',       letter: 'М', price: 39, chance: 49 },
   { name: 'Акула Пон',         letter: 'А', price: 48, chance: 27.98 },
-  { name: 'Векосини Сигмаини', letter: 'В', price: 98, chance: 10 },
+  { name: 'Векосини Сигмаини', letter: 'В', price: 98, chance: 3.5 },
 ];
 const CASES = {
   free:   { title: 'БЕСПЛАТНЫЙ', name: 'Бесплатный', img: 'assets/cases/free.png', drops: FREE_ITEMS },
@@ -174,7 +171,7 @@ function renderFeed() {
   feed = feed.filter(f => f.n);
   if (!feed.length) { el.innerHTML = '<div class="empty">Пока тихо — открой кейс и стань первым 🔥</div>'; return; }
   el.innerHTML = feed.map(f =>
-    `<div class="live-item${f.p >= 150 ? ' top' : ''}">${f.e && String(f.e).startsWith('assets/') ? `<img class="live-img" src="${f.e}" alt="">` : `<div class="meme-tile xs"><b>${f.l || 'М'}</b></div>`}<div><b>${f.n}</b><small>${f.p} GG</small></div></div>`).join('');
+    `<div class="live-item${f.p >= 60 ? ' top' : ''}">${f.e && String(f.e).startsWith('assets/') ? `<img class="live-img" src="${f.e}" alt="">` : `<div class="meme-tile xs"><b>${f.l || 'М'}</b></div>`}<div><b>${f.n}</b><small>${f.p} GG</small></div></div>`).join('');
 }
 function renderTop() {
   const el = document.getElementById('topFeed');
@@ -192,7 +189,7 @@ async function loadLive() {
     const j = await r.json();
     if (j.ok && j.feed.length) {
       document.getElementById('liveFeed').innerHTML = j.feed.map(f =>
-        `<div class="live-item${f.p >= 150 ? ' top' : ''}"><img class="live-img" src="${f.e || GG_IMG}" alt=""><div><b>${f.n}</b><small>${f.p} GG</small></div></div>`).join('');
+        `<div class="live-item${f.p >= 60 ? ' top' : ''}"><img class="live-img" src="${f.e || GG_IMG}" alt=""><div><b>${f.n}</b><small>${f.p} GG</small></div></div>`).join('');
     }
     const t = await (await fetch(BACKEND_URL + '/api/top', { cache: 'no-store' })).json();
     if (t.ok) {
@@ -476,7 +473,7 @@ async function animateRoulette(items, win, priceLine) {
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const dur = speed === 'fast' ? 1.8 : 5;
   track.style.transition = `transform ${dur}s cubic-bezier(.12,.8,.08,1)`;
-  track.style.transform = `translateX(-${34*94 - (document.getElementById('roulette').clientWidth/2 - 43) + (Math.random()*40-20)}px)`;
+  track.style.transform = `translateX(-${34*128 - (document.getElementById('roulette').clientWidth/2 - 60) + (Math.random()*40-20)}px)`;
   status.textContent = 'Крутим... удачи!';
   const tick = setInterval(sfx.tick, 130);
   await new Promise(r=>setTimeout(r, dur*1000+100));
