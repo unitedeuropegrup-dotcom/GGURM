@@ -260,6 +260,9 @@ async def _to_admin(bot: Bot, user: types.User, text: str):
     return True
 
 
+KEYWORDS = {"баланс", "профиль", "кейс", "бесплатный", "кейсы", "пополнить", "депозит", "звезды", "звёзды"}
+
+
 @dp.message(F.text)
 async def support_catcher(m: types.Message, bot: Bot):
     # ответ админа пользователю
@@ -276,6 +279,8 @@ async def support_catcher(m: types.Message, bot: Bot):
     if not ADMIN_ID:
         await m.answer("Поддержка пока не настроена.")
         return
+    if (m.text or "").strip().lower() in KEYWORDS:
+        return await fallback(m)
     await _to_admin(bot, m.from_user, m.text or "")
     await m.answer("Сообщение отправлено. Админ ответит сюда.")
 
@@ -289,6 +294,11 @@ async def support_photo(m: types.Message, bot: Bot):
         InlineKeyboardButton(text="Ответить", callback_data=f"reply:{m.from_user.id}")]])
     await bot.send_message(ADMIN_ID, f"Фото от {_who(m.from_user)}. Подпись: {m.caption or '—'}", reply_markup=kb)
     await m.answer("Сообщение отправлено. Админ ответит сюда.")
+
+
+@dp.message(Command("support"))
+async def cmd_support(m: types.Message):
+    await m.answer("Напиши свой вопрос следующим сообщением — админ ответит прямо сюда.")
 
 
 @dp.message(F.text.lower().in_({"баланс", "профиль", "кейс", "бесплатный", "кейсы", "пополнить", "депозит", "звезды", "звёзды"}))
