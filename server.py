@@ -165,7 +165,69 @@ app.router.lifespan_context = lifespan
 @app.post("/api/me")
 def api_me(body: In):
     u = need_user(body.initData)
-    return {"ok": True, **db.get_user(int(u["id"]))}
+    st = db.get_user(int(u["id"]))
+    return {"ok": True, "is_admin": ADMIN_ID and int(u["id"]) == ADMIN_ID, **st}
+
+
+def need_admin(init_data: str) -> int:
+    u = need_user(init_data)
+    if not ADMIN_ID or int(u["id"]) != ADMIN_ID:
+        raise HTTPException(403, "not admin")
+    return int(u["id"])
+
+
+class GiveIn(BaseModel):
+    initData: str = ""
+    target_id: int = 0
+    amount: int = 0
+
+
+class PromoCreateIn(BaseModel):
+    initData: str = ""
+    code: str = ""
+    kind: str = "coins"
+    amount: int = 0
+    uses: int = 1
+
+
+class ResetCdIn(BaseModel):
+    initData: str = ""
+    target: str = "all"  # "all" или telegram id
+
+
+@app.post("/api/admin_give")
+def api_admin_give(body: GiveIn):
+    need_admin(body.initData)
+    if body.target_id <= 0 or body.amount <= 0 or body.amount > 1_000_000_000:
+        raise HTTPException(400, "bad args")
+    return {"ok": True, "balance": db.add_balance(body.target_id, body.amount)}
+
+
+@app.post("/api/admin_promo")
+def api_admin_promo(body: PromoCreateIn):
+    need_admin(body.initData)
+    if not db.promo_create(body.code, body.kind, body.amount, body.uses):
+        raise HTTPException(400, "bad promo (код занят или неверные поля)")
+    return {"ok": True, "promos": db.promo_list()}
+
+
+@app.post("/api/admin_promos")
+def api_admin_promos(body: In):
+    need_admin(body.initData)
+    return {"ok": True, "promos": db.promo_list()}
+
+
+@app.post("/api/admin_reset_cd")
+def api_admin_reset_cd(body: ResetCdIn):
+    need_admin(body.initData)
+    import sqlite3 as _sq
+    from db import _conn, _lock
+    with _lock, _conn() as c:
+        if body.target == "all":
+            cur = c.execute("UPDATE users SET free_cd=0")
+        else:
+            cur = c.execute("UPDATE users SET free_cd=0 WHERE tg_id=?", (int(body.target or 0),))
+    return {"ok": True, "n": cur.rowcount}
 
 
 @app.post("/api/import")
@@ -185,6 +247,18 @@ def api_promo(body: PromoIn):
             return {"ok": False, "error": "already"}
         db.set_bonus(uid, 1)
         return {"ok": True, "kind": "bonus"}
+    custom = db.promo_redeem(code)
+    if custom:
+        kind, amount = custom
+        if kind == "bonus":
+            db.set_bonus(uid, 1)
+            return {"ok": True, "kind": "bonus"}
+        st = db.get_user(uid)
+        if st["bonus"]:
+            amount = int(amount * 1.15)
+            db.set_bonus(uid, 0)
+        bal = db.add_balance(uid, amount)
+        return {"ok": True, "kind": "credit", "gg": amount, "balance": bal}
     import re
     m = re.match(r"^GGDP-(\d+)-(\d+)-([0-9A-F]{4,12})$", code)
     if m and int(m.group(1)) == uid:

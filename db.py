@@ -43,6 +43,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT, tg_id INTEGER, item_id INTEGER,
             name TEXT, price INTEGER, roblox TEXT, slot_ts INTEGER,
             status TEXT DEFAULT 'pending', created_ts INTEGER)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS promos(
+            code TEXT PRIMARY KEY, kind TEXT, amount INTEGER, uses INTEGER)""")
 
 
 def get_user(tg_id: int) -> dict:
@@ -231,3 +233,33 @@ def wd_history(tg_id: int) -> list:
         rows = c.execute("SELECT id, name, price, roblox, slot_ts, status FROM withdraws WHERE tg_id=? ORDER BY id DESC LIMIT 20",
                          (tg_id,)).fetchall()
     return [{"id": r[0], "name": r[1], "price": r[2], "roblox": r[3], "slot_ts": r[4], "status": r[5]} for r in rows]
+
+
+# ---------- админка ----------
+def promo_create(code: str, kind: str, amount: int, uses: int) -> bool:
+    code = (code or "").strip().upper()
+    if not code or kind not in ("coins", "bonus") or uses < 1:
+        return False
+    with _lock, _conn() as c:
+        try:
+            c.execute("INSERT INTO promos(code, kind, amount, uses) VALUES(?,?,?,?)",
+                      (code, kind, max(0, int(amount or 0)), int(uses)))
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+
+def promo_list() -> list:
+    with _lock, _conn() as c:
+        rows = c.execute("SELECT code, kind, amount, uses FROM promos ORDER BY code").fetchall()
+    return [{"code": r[0], "kind": r[1], "amount": r[2], "uses": r[3]} for r in rows]
+
+
+def promo_redeem(code: str):
+    """Одно использование. Возвращает (kind, amount) или None."""
+    with _lock, _conn() as c:
+        r = c.execute("SELECT kind, amount, uses FROM promos WHERE code=?", (code,)).fetchone()
+        if not r or r[2] < 1:
+            return None
+        c.execute("UPDATE promos SET uses=uses-1 WHERE code=?", (code,))
+        return (r[0], r[1])

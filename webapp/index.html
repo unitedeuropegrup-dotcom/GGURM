@@ -6,7 +6,7 @@
 <title>GGУРМ — Кейсы</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -39,13 +39,9 @@
     <button class="drawer-item active" data-goto="home">Главная</button>
     <button class="drawer-item" data-goto="cases">Кейсы</button>
     <button class="drawer-item" data-soon="Апгрейдер">Апгрейдер</button>
-    <button class="drawer-item" data-soon="Батл">Батл</button>
-    <button class="drawer-item" data-soon="Дайсы">Дайсы</button>
     <button class="drawer-item" data-soon="Краш">Краш</button>
     <button class="drawer-item" data-soon="Квесты">Квесты</button>
     <button class="drawer-item" data-soon="Розыгрыши">Розыгрыши</button>
-    <button class="drawer-item" data-soon="FAQ">FAQ</button>
-    <button class="drawer-item" data-soon="Бонусы">Бонусы</button>
     <button class="drawer-item" data-goto="profile">Профиль</button>
     <button class="drawer-item" data-goto="settings">Настройки</button>
     <button class="drawer-item" id="drawerSupport">Поддержка</button>
@@ -59,13 +55,9 @@
     <button class="tnav-btn active" data-goto="home">ГЛАВНАЯ</button>
     <button class="tnav-btn" data-goto="cases">КЕЙСЫ</button>
     <button class="tnav-btn" data-soon="Апгрейдер">АПГРЕЙДЕР</button>
-    <button class="tnav-btn" data-soon="Батл">БАТЛ</button>
-    <button class="tnav-btn" data-soon="Дайсы">ДАЙСЫ</button>
     <button class="tnav-btn" data-soon="Краш">КРАШ</button>
     <button class="tnav-btn" data-soon="Квесты">КВЕСТЫ</button>
     <button class="tnav-btn" data-soon="Розыгрыши">РОЗЫГРЫШИ</button>
-    <button class="tnav-btn" data-soon="FAQ">FAQ</button>
-    <button class="tnav-btn" data-soon="Бонусы">БОНУСЫ</button>
     <button class="tnav-btn" data-goto="profile">ПРОФИЛЬ</button>
   </div>
 </nav>
@@ -236,6 +228,31 @@
         <div class="set-row static"><span>Режим</span><b id="modeLabel">Офлайн</b></div>
         <div class="set-row static"><span>Версия</span><b>GGУРМ 1.0</b></div>
       </div>
+      <div id="adminBox" class="hidden">
+        <section class="section-title"><h2>АДМИНКА</h2><div class="line"></div></section>
+        <div class="settings">
+          <div class="set-row static"><span>Выдать GG</span></div>
+          <div class="admin-grid">
+            <input class="search" id="admUid" inputmode="numeric" placeholder="ID игрока">
+            <input class="search" id="admAmt" type="number" placeholder="GG">
+          </div>
+          <button class="btn-open" id="admGive">Выдать</button>
+          <div class="set-row static"><span>Промокод</span></div>
+          <div class="admin-grid">
+            <input class="search" id="admCode" placeholder="КОД" autocapitalize="characters">
+            <select class="search" id="admKind"><option value="coins">Монеты</option><option value="bonus">+15% к пополнению</option></select>
+            <input class="search" id="admPamt" type="number" placeholder="Сумма GG">
+            <input class="search" id="admUses" type="number" placeholder="Использований">
+          </div>
+          <button class="btn-open" id="admPromo">Создать промокод</button>
+          <div class="set-row static"><span>Сброс перезарядки</span></div>
+          <div class="admin-grid">
+            <input class="search" id="admTarget" placeholder="ID или all">
+          </div>
+          <button class="btn-open" id="admReset">Сбросить КД</button>
+          <div class="admin-list" id="admPromos"></div>
+        </div>
+      </div>
       <p class="hint">Таймеры (перезарядка кейса, заявки на вывод) идут на сервере и продолжаются, даже если закрыть приложение.</p>
     </main>
   </div>
@@ -265,6 +282,18 @@
     <button class="btn-open big" id="wdSubmit">ОТПРАВИТЬ ЗАЯВКУ</button>
     <div class="wd-step"><div><b>История заявок</b></div></div>
     <div class="wd-history" id="wdHistory"><div class="empty">Заявок пока нет</div></div>
+  </div>
+</div>
+
+<!-- ПОДТВЕРЖДЕНИЕ -->
+<div class="modal hidden" id="confirmModal">
+  <div class="quest-card">
+    <h2 id="confirmTitle">Точно?</h2>
+    <p class="quest-sub" id="confirmText"></p>
+    <div class="modal-btns">
+      <button class="btn-sell" id="confirmNo">Нет</button>
+      <button class="btn-keep" id="confirmYes">Да</button>
+    </div>
   </div>
 </div>
 
@@ -320,13 +349,13 @@
     <div class="win-emoji" id="winEmoji"><img class="win-img" src="assets/ggcoin.png" alt="GG"></div>
     <h2 id="winName">2 GG</h2>
     <div class="win-price" id="winPrice">+2 GG на балансе</div>
-    <div class="modal-btns single">
+    <div class="modal-btns single" id="winBtns">
       <button class="btn-keep" id="collectBtn">ЗАБРАТЬ</button>
     </div>
   </div>
 </div>
 
 <div class="toast hidden" id="toast"></div>
-<script src="app.js"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

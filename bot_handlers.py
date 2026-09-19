@@ -63,6 +63,8 @@ async def start(m: types.Message, command: CommandStart):
     args = command.args or ""
     if args.startswith("deposit"):
         return await show_deposit(m)
+    if args.startswith("support"):
+        await m.answer("Напиши свой вопрос следующим сообщением — админ ответит прямо сюда.")
     rows = []
     if WEBAPP_URL.startswith("https://"):
         rows.append([InlineKeyboardButton(text="Играть!", web_app=WebAppInfo(url=WEBAPP_URL))])
@@ -214,6 +216,68 @@ async def cb_no_wd(cq: types.CallbackQuery, bot: Bot):
         pass
     if ADMIN_ID:
         await bot.send_message(ADMIN_ID, f"Игрок {w['tg_id']} отказался от вывода: {w['name']} ({w['price']} GG)")
+
+
+pending_reply: dict[int, int] = {}  # admin_id -> user_id, кому отвечает админ
+
+
+def _who(u: types.User) -> str:
+    name = (u.full_name or "Игрок").strip() or "Игрок"
+    un = f" (@{u.username})" if u.username else ""
+    return f"{name}{un} [id {u.id}]"
+
+
+@dp.callback_query(F.data.startswith("reply:"))
+async def cb_reply(cq: types.CallbackQuery):
+    if cq.from_user.id != ADMIN_ID or not ADMIN_ID:
+        return await cq.answer("Только для админа")
+    try:
+        target = int(cq.data.split(":")[1])
+    except (ValueError, IndexError):
+        return await cq.answer()
+    pending_reply[cq.from_user.id] = target
+    await cq.answer()
+    await cq.message.answer(f"Напиши ответ пользователю [id {target}] следующим сообщением.")
+
+
+async def _to_admin(bot: Bot, user: types.User, text: str):
+    if not ADMIN_ID:
+        return False
+    kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="Ответить", callback_data=f"reply:{user.id}")]])
+    await bot.send_message(ADMIN_ID, f"Сообщение от {_who(user)}:\n\n{text}", reply_markup=kb)
+    return True
+
+
+@dp.message(F.text)
+async def support_catcher(m: types.Message, bot: Bot):
+    # ответ админа пользователю
+    if ADMIN_ID and m.from_user.id == ADMIN_ID and m.from_user.id in pending_reply:
+        target = pending_reply.pop(m.from_user.id)
+        try:
+            await bot.send_message(target, f"Ответ поддержки:\n\n{m.text}")
+            await m.answer("Ответ отправлен.")
+        except Exception:
+            await m.answer("Не получилось доставить ответ.")
+        return
+    if m.from_user.id == ADMIN_ID:
+        return
+    if not ADMIN_ID:
+        await m.answer("Поддержка пока не настроена.")
+        return
+    await _to_admin(bot, m.from_user, m.text or "")
+    await m.answer("Сообщение отправлено. Админ ответит сюда.")
+
+
+@dp.message(F.photo)
+async def support_photo(m: types.Message, bot: Bot):
+    if m.from_user.id == ADMIN_ID or not ADMIN_ID:
+        return
+    await bot.forward_message(ADMIN_ID, m.chat.id, m.message_id)
+    kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="Ответить", callback_data=f"reply:{m.from_user.id}")]])
+    await bot.send_message(ADMIN_ID, f"Фото от {_who(m.from_user)}. Подпись: {m.caption or '—'}", reply_markup=kb)
+    await m.answer("Сообщение отправлено. Админ ответит сюда.")
 
 
 @dp.message(F.text.lower().in_({"баланс", "профиль", "кейс", "бесплатный", "кейсы", "пополнить", "депозит", "звезды", "звёзды"}))

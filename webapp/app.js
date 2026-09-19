@@ -28,13 +28,13 @@ function tone(f, t0, d, type, g) {
     o.start(a.currentTime + t0); o.stop(a.currentTime + t0 + d);
   } catch(e){}
 }
-const sfx = {
-  click: () => tone(700, 0, .06, 'square', .04),
-  open:  () => { tone(300,0,.12); tone(450,.1,.12); tone(620,.2,.16); },
-  tick:  () => tone(950, 0, .03, 'square', .035),
-  win:   () => [523,659,784,1047].forEach((f,i)=>tone(f,i*.12,.25)),
-  coin:  () => { tone(1200,0,.08); tone(1600,.08,.14); },
-  error: () => tone(190, 0, .22, 'sawtooth', .07),
+const sfx = { // спокойные, тихие
+  click: () => tone(520, 0, .07, 'sine', .045),
+  open:  () => { tone(330,0,.18,'sine',.06); tone(415,.12,.18,'sine',.06); tone(494,.24,.22,'sine',.06); },
+  tick:  () => tone(700, 0, .04, 'sine', .028),
+  win:   () => [523,587,659,784].forEach((f,i)=>tone(f,i*.14,.3,'sine',.07)),
+  coin:  () => { tone(880,0,.1,'sine',.055); tone(1320,.09,.16,'sine',.05); },
+  error: () => tone(220, 0, .25, 'sine', .055),
 };
 document.addEventListener('click', e => { if (e.target.closest('button')) sfx.click(); });
 
@@ -105,6 +105,15 @@ function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.remove('hidden');
   clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.add('hidden'), 2400);
+}
+function confirmDlg(title, text) {
+  return new Promise(res => {
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmText').textContent = text;
+    document.getElementById('confirmModal').classList.remove('hidden');
+    document.getElementById('confirmYes').onclick = () => { document.getElementById('confirmModal').classList.add('hidden'); sfx.open(); res(true); };
+    document.getElementById('confirmNo').onclick = () => { document.getElementById('confirmModal').classList.add('hidden'); res(false); };
+  });
 }
 function iconHTML(it, cls) {
   if (it.img) return `<img class="${cls || 'prize-img'}" src="${it.img}" alt="">`;
@@ -221,7 +230,7 @@ async function initBackend() {
     }
   } else { balance = me.balance; wonTotal = me.won; opened = Math.max(opened, me.opened || 0); }
   document.getElementById('payBonusNote').textContent = me.bonus ? ' • +15% активно!' : '';
-  save(); render(); await refreshInv(); loadLive();
+  save(); render(); await refreshInv(); refreshAdmin(); loadLive();
   setInterval(async () => {
     const m = await api('/api/me');
     if (m && m.ok && (m.balance !== balance || m.won !== wonTotal)) {
@@ -266,7 +275,7 @@ document.getElementById('burgerBtn').onclick = () => document.getElementById('dr
 document.getElementById('drawerClose').onclick = () => document.getElementById('drawerWrap').classList.add('hidden');
 document.getElementById('drawerBackdrop').onclick = () => document.getElementById('drawerWrap').classList.add('hidden');
 document.getElementById('gearBtn').onclick = () => gotoTab('settings');
-document.getElementById('drawerSupport').onclick = () => { document.getElementById('drawerWrap').classList.add('hidden'); toast('Поддержка скоро появится'); };
+document.getElementById('drawerSupport').onclick = openSupport;
 document.querySelectorAll('[data-goto]').forEach(btn => btn.onclick = () => gotoTab(btn.dataset.goto));
 document.querySelectorAll('[data-soon]').forEach(btn => btn.onclick = () => { sfx.error(); toast(`${btn.dataset.soon} скоро появится`); });
 
@@ -450,17 +459,42 @@ async function animateRoulette(items, win, priceLine) {
   clearInterval(tick);
   return status;
 }
-function showWin(icon, name, sub) {
+function showWin(icon, name, sub, sell) {
   document.getElementById('winEmoji').innerHTML = icon;
   document.getElementById('winName').textContent = name;
   document.getElementById('winPrice').textContent = sub;
+  const box = document.getElementById('winBtns');
+  if (sell) {
+    box.className = 'modal-btns';
+    box.innerHTML = `<button class="btn-sell" id="sellWinBtn">ПРОДАТЬ ЗА ${sell.price} GG</button><button class="btn-keep" id="collectBtn">ЗАБРАТЬ</button>`;
+    document.getElementById('sellWinBtn').onclick = () => sellWonMeme(sell);
+    document.getElementById('collectBtn').onclick = closeWin;
+  } else {
+    box.className = 'modal-btns single';
+    box.innerHTML = `<button class="btn-keep" id="collectBtn">ЗАБРАТЬ</button>`;
+    document.getElementById('collectBtn').onclick = closeWin;
+  }
   document.getElementById('winModal').classList.remove('hidden');
   sfx.win(); tg?.HapticFeedback?.notificationOccurred('success');
 }
-document.getElementById('collectBtn').onclick = () => {
+function closeWin() {
   document.getElementById('winModal').classList.add('hidden');
   toast('Уже в профиле');
-};
+}
+let lastMeme = null;
+async function sellWonMeme(sell) {
+  if (serverMode && lastMeme && lastMeme.id) {
+    const r = await api('/api/sell', { item_id: lastMeme.id });
+    if (r && r.ok) { balance = r.balance; save(); render(); await refreshInv(); }
+    else { sfx.error(); return toast('Не получилось продать'); }
+  } else if (lastMeme) {
+    const i = memes.findIndex(m => String(m.id) === String(lastMeme.id));
+    if (i >= 0) { const [m] = memes.splice(i, 1); balance += m.price; wonTotal += m.price; save(); render(); }
+  }
+  lastMeme = null;
+  document.getElementById('winModal').classList.add('hidden');
+  toast('Мем продан'); sfx.coin();
+}
 
 async function spinFree() {
   if (spinning) return;
@@ -495,12 +529,13 @@ async function openSecret() {
     spinning = true; sfx.open();
     balance = r.balance; wonTotal = r.won; opened += 1; save(); render();
     const win = { name: r.item.name, letter: r.item.letter, price: r.item.price };
+    lastMeme = { id: r.item.id };
     const status = await animateRoulette(MEMES, win, it => it.price + ' GG');
     spinning = false;
     await refreshInv();
     pushFeed(win);
     status.textContent = `Выпало: ${win.name}! Мем в инвентаре`;
-    showWin(iconHTML({letter: win.letter}, 'big'), win.name, `${win.price} GG • мем в инвентаре`);
+    showWin(iconHTML({letter: win.letter}, 'big'), win.name, `${win.price} GG • мем в инвентаре`, { price: win.price });
     return;
   }
   if (balance < SECRET_PRICE) { sfx.error(); return toast('Не хватает GG — пополни баланс'); }
@@ -509,12 +544,13 @@ async function openSecret() {
   const win = rollW(MEMES);
   const item = { id: Date.now(), name: win.name, letter: win.letter, price: win.price, won_ts: Date.now() };
   memes.unshift(item);
+  lastMeme = item;
   opened += 1; save(); render();
   const status = await animateRoulette(MEMES, win, it => it.price + ' GG');
   spinning = false;
   pushFeed(win);
   status.textContent = `Выпало: ${win.name}! Мем в инвентаре`;
-  showWin(iconHTML({letter: win.letter}, 'big'), win.name, `${win.price} GG • мем в инвентаре`);
+  showWin(iconHTML({letter: win.letter}, 'big'), win.name, `${win.price} GG • мем в инвентаре`, { price: win.price });
 }
 
 // ---------- ИНВЕНТАРЬ / ПРОДАЖА ----------
@@ -532,16 +568,19 @@ async function sellMeme(id) {
   toast(`Продано за ${m.price} GG`); sfx.coin();
 }
 document.getElementById('sellAllBtn').onclick = async () => {
+  const list = serverMode
+    ? ((await api('/api/inventory'))?.items || []).filter(i => i.status === 'active')
+    : memes.filter(m => !m.status || m.status === 'active');
+  if (!list.length) return toast('Инвентарь пуст');
+  const total = list.reduce((s, m) => s + m.price, 0);
+  if (!await confirmDlg('Продать всё?', `Ты точно хочешь продать все мемы за ${total} GG?`)) return;
   if (serverMode) {
     const r = await api('/api/sell_all');
-    if (r && r.ok) { balance = r.balance; save(); render(); await refreshInv(); toast(r.total ? `Продано всё за ${r.total} GG` : 'Инвентарь пуст'); sfx.coin(); }
-    return;
+    if (r && r.ok) { balance = r.balance; save(); render(); await refreshInv(); }
+  } else {
+    memes = memes.filter(m => m.status && m.status !== 'active');
+    balance += total; wonTotal += total; save(); render();
   }
-  const act = memes.filter(m => !m.status || m.status === 'active');
-  if (!act.length) return toast('Инвентарь пуст');
-  const total = act.reduce((s,m) => s + m.price, 0);
-  memes = memes.filter(m => m.status && m.status !== 'active');
-  balance += total; wonTotal += total; save(); render();
   toast(`Продано всё за ${total} GG`); sfx.coin();
 };
 
@@ -599,7 +638,44 @@ document.getElementById('wdSubmit').onclick = async () => {
   }
 };
 
-// ---------- НАСТРОЙКИ ----------
+// ---------- АДМИНКА ----------
+let isAdmin = false;
+async function refreshAdmin() {
+  if (!serverMode) return;
+  const r = await api('/api/admin_promos');
+  const box = document.getElementById('adminBox');
+  if (r && r.ok) {
+    isAdmin = true; box.classList.remove('hidden');
+    document.getElementById('admPromos').innerHTML = r.promos.length
+      ? r.promos.map(p => `<div class="inv-item"><div><b>${p.code}</b><small>${p.kind === 'coins' ? p.amount + ' GG' : '+15%'} • осталось ${p.uses}</small></div></div>`).join('')
+      : '<div class="empty">Промокодов пока нет</div>';
+  } else { isAdmin = false; box.classList.add('hidden'); }
+}
+document.getElementById('admGive').onclick = async () => {
+  const t = parseInt(document.getElementById('admUid').value, 10);
+  const a = parseInt(document.getElementById('admAmt').value, 10);
+  if (!t || !a) { sfx.error(); return toast('Введи ID и сумму'); }
+  const r = await api('/api/admin_give', { target_id: t, amount: a });
+  if (r && r.ok) { toast(`Выдано ${a} GG игроку ${t}`); sfx.coin(); }
+  else { sfx.error(); toast('Не получилось'); }
+};
+document.getElementById('admPromo').onclick = async () => {
+  const code = document.getElementById('admCode').value.trim().toUpperCase();
+  const kind = document.getElementById('admKind').value;
+  const amount = parseInt(document.getElementById('admPamt').value || '0', 10);
+  const uses = parseInt(document.getElementById('admUses').value || '1', 10);
+  if (!code) { sfx.error(); return toast('Введи код'); }
+  const r = await api('/api/admin_promo', { code, kind, amount, uses });
+  if (r && r.ok) { toast(`Промокод ${code} создан`); sfx.coin(); refreshAdmin(); }
+  else { sfx.error(); toast('Код занят или неверные поля'); }
+};
+document.getElementById('admReset').onclick = async () => {
+  const t = document.getElementById('admTarget').value.trim().toLowerCase() || 'all';
+  if (!await confirmDlg('Сбросить КД?', t === 'all' ? 'Сбросить перезарядку бесплатного кейса ВСЕМ?' : `Сбросить перезарядку игроку ${t}?`)) return;
+  const r = await api('/api/admin_reset_cd', { target: t });
+  if (r && r.ok) toast(`Сброшено: ${r.n}`);
+  else { sfx.error(); toast('Не получилось'); }
+};
 function paintSound() {
   document.getElementById('soundSwitch').classList.toggle('on', soundOn());
 }
@@ -609,8 +685,15 @@ document.getElementById('soundRow').onclick = () => {
   toast(soundOn() ? 'Звуки включены' : 'Звуки выключены');
 };
 
-// ---------- SUPPORT ----------
-document.getElementById('supportFab').onclick = () => toast('Поддержка скоро появится');
+// ---------- SUPPORT (через чат с ботом) ----------
+function openSupport() {
+  document.getElementById('drawerWrap').classList.add('hidden');
+  const url = `https://t.me/${BOT_USERNAME}?start=support`;
+  if (tg?.openTelegramLink) tg.openTelegramLink(url);
+  else window.open(url, '_blank');
+  toast('Напиши вопрос в чат с ботом — админ ответит туда же');
+}
+document.getElementById('supportFab').onclick = openSupport;
 
 // hero timer (идёт от метки — продолжается после ухода)
 let heroEnd = parseInt(localStorage.getItem('ggurm_hero_end') || '0', 10);

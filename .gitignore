@@ -9,3 +9,5 @@ Include/
 pyvenv.cfg
 .venv/
 venv/
+
+.vercel
