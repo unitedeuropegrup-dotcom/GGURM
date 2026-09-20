@@ -223,32 +223,8 @@
       <h1 class="big-title">НАСТРОЙКИ</h1>
       <div class="settings">
         <button class="set-row" id="soundRow"><span>Звуки</span><span class="switch on" id="soundSwitch"><i></i></span></button>
+        <button class="set-row hidden" id="adminRow"><span>Админка</span><span class="link-green">Открыть →</span></button>
         <div class="set-row static"><span>Версия</span><b>GGУРМ 1.0</b></div>
-      </div>
-      <div id="adminBox" class="hidden">
-        <section class="section-title"><h2>АДМИНКА</h2><div class="line"></div></section>
-        <div class="settings">
-          <div class="set-row static"><span>Выдать GG</span></div>
-          <div class="admin-grid">
-            <input class="search" id="admUid" inputmode="numeric" placeholder="ID игрока">
-            <input class="search" id="admAmt" type="number" placeholder="GG">
-          </div>
-          <button class="btn-open" id="admGive">Выдать</button>
-          <div class="set-row static"><span>Промокод</span></div>
-          <div class="admin-grid">
-            <input class="search" id="admCode" placeholder="КОД" autocapitalize="characters">
-            <select class="search" id="admKind"><option value="coins">Монеты</option><option value="bonus">+15% к пополнению</option></select>
-            <input class="search" id="admPamt" type="number" placeholder="Сумма GG">
-            <input class="search" id="admUses" type="number" placeholder="Использований">
-          </div>
-          <button class="btn-open" id="admPromo">Создать промокод</button>
-          <div class="set-row static"><span>Сброс перезарядки</span></div>
-          <div class="admin-grid">
-            <input class="search" id="admTarget" placeholder="ID или all">
-          </div>
-          <button class="btn-open" id="admReset">Сбросить КД</button>
-          <div class="admin-list" id="admPromos"></div>
-        </div>
       </div>
       <p class="hint">Таймеры (перезарядка кейса, заявки на вывод) идут на сервере и продолжаются, даже если закрыть приложение.</p>
     </main>
@@ -279,6 +255,34 @@
     <button class="btn-open big" id="wdSubmit">ОТПРАВИТЬ ЗАЯВКУ</button>
     <div class="wd-step"><div><b>История заявок</b></div></div>
     <div class="wd-history" id="wdHistory"><div class="empty">Заявок пока нет</div></div>
+  </div>
+</div>
+
+<!-- АДМИНКА (только для админа) -->
+<div class="modal hidden" id="adminModal">
+  <div class="quest-card wide">
+    <button class="quest-close" id="adminClose">✕</button>
+    <h2>АДМИНКА</h2>
+    <div class="set-row static"><span>Выдать GG</span></div>
+    <div class="admin-grid">
+      <input class="search" id="admUid" inputmode="numeric" placeholder="ID игрока">
+      <input class="search" id="admAmt" type="number" placeholder="GG">
+    </div>
+    <button class="btn-open" id="admGive">Выдать</button>
+    <div class="set-row static"><span>Промокод</span></div>
+    <div class="admin-grid">
+      <input class="search" id="admCode" placeholder="КОД" autocapitalize="characters">
+      <select class="search" id="admKind"><option value="coins">Монеты</option><option value="bonus">+15% к пополнению</option></select>
+      <input class="search" id="admPamt" type="number" placeholder="Сумма GG">
+      <input class="search" id="admUses" type="number" placeholder="Использований">
+    </div>
+    <button class="btn-open" id="admPromo">Создать промокод</button>
+    <div class="set-row static"><span>Сброс перезарядки</span></div>
+    <div class="admin-grid">
+      <input class="search" id="admTarget" placeholder="ID или all">
+    </div>
+    <button class="btn-open" id="admReset">Сбросить КД</button>
+    <div class="admin-list" id="admPromos"></div>
   </div>
 </div>
 
@@ -356,17 +360,6 @@
 </div>
 
 <div class="toast hidden" id="toast"></div>
-
-<!-- ХОСТ ЛЁГ -->
-<div class="modal hidden" id="hostModal">
-  <div class="quest-card">
-    <div class="quest-icon t">!</div>
-    <h2>Хост лёг, ожидаем...</h2>
-    <p class="quest-sub">Бесплатный сервер просыпается до минуты. Приложение подключится само.</p>
-    <p class="quest-sub small" id="hostErr"></p>
-    <button class="btn-open big" id="hostRetry">ПОВТОРИТЬ</button>
-  </div>
-</div>
 <script src="app.js?v=5"></script>
 </body>
 </html>

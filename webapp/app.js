@@ -227,13 +227,10 @@ async function initBackend() {
     me = await api('/api/me', null, null, 25000);
   }
   _connecting = false;
-  if (!me || !me.ok) { // хост лёг — показываем заглушку, ретраим в фоне
-    document.getElementById('hostErr').textContent = 'Причина: ' + (window._apiErr || 'нет ответа') + '. Проверь Render → Logs во время входа.';
-    document.getElementById('hostModal').classList.remove('hidden');
+  if (!me || !me.ok) { // тихо ретраим в фоне
     setTimeout(() => { if (!serverMode) initBackend(); }, 20000);
     return;
   }
-  document.getElementById('hostModal').classList.add('hidden');
   serverMode = true;
   toast('Общий баланс подключён');
   if (!localStorage.getItem('ggurm_imported')) {
@@ -679,9 +676,9 @@ let isAdmin = false;
 async function refreshAdmin() {
   if (!serverMode) return;
   const r = await api('/api/admin_promos');
-  const box = document.getElementById('adminBox');
+  const row = document.getElementById('adminRow');
   if (r && r.ok) {
-    isAdmin = true; box.classList.remove('hidden');
+    isAdmin = true; row.classList.remove('hidden');
     document.getElementById('admPromos').innerHTML = r.promos.length
       ? r.promos.map(p => `<div class="inv-item"><div><b>${p.code}</b><small>${p.kind === 'coins' ? p.amount + ' GG' : '+15%'} • осталось ${p.uses}</small></div></div>`).join('')
       : '<div class="empty">Промокодов пока нет</div>';
@@ -740,9 +737,10 @@ setInterval(() => {
   document.getElementById('heroTimer').textContent = fmtLeft(left);
 }, 1000);
 
-document.getElementById('hostRetry').onclick = () => {
-  document.getElementById('hostModal').classList.add('hidden');
-  initBackend();
+document.getElementById('adminRow').onclick = () => {
+  document.getElementById('adminModal').classList.remove('hidden');
+  refreshAdmin();
 };
+document.getElementById('adminClose').onclick = () => document.getElementById('adminModal').classList.add('hidden');
 paintSound();
 render(); initBackend(); loadLive();

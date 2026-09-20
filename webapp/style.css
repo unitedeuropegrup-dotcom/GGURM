@@ -325,6 +325,11 @@ img{max-width:100%}
 /* админка */
 .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px}
 .admin-grid .search{margin-bottom:8px}
-#adminBox .btn-open{margin:4px 12px 12px;width:calc(100% - 24px)}
+#adminModal .btn-open{margin:4px 0 12px;width:100%}
+#adminModal .settings{background:none;border:none}
+#adminModal .set-row{padding:12px 2px}
+#adminModal .admin-grid{padding:0}
+#adminModal .admin-list{padding:0}
+.link-green{color:var(--green);font-weight:800}
 .admin-list{padding:0 12px 12px;display:flex;flex-direction:column;gap:8px}
 .admin-list .empty{margin:0}
