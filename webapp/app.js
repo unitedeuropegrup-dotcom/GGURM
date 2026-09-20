@@ -222,8 +222,7 @@ async function initBackend() {
   if (!BACKEND_URL || !tg?.initData || serverMode || _connecting) return;
   _connecting = true;
   let me = null;
-  for (let i = 0; i < 4 && !me; i++) { // бесплатный сервер просыпается до минуты
-    if (i > 0) toast('Сервер просыпается, пробую ещё…');
+  for (let i = 0; i < 4 && !me; i++) {
     me = await api('/api/me', null, null, 25000);
   }
   _connecting = false;
@@ -440,7 +439,6 @@ function openShare() {
 }
 document.getElementById('shareBtn2').onclick = openShare;
 document.getElementById('copyRef').onclick = () => { navigator.clipboard?.writeText(refLink); toast('Ссылка скопирована!'); };
-document.getElementById('depositProfileBtn').onclick = () => toast('Депозит скоро появится');
 
 // ---------- QUEST (бесплатный кейс) ----------
 document.getElementById('openCaseBtn').onclick = () => {
