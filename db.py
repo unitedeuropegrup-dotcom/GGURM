@@ -172,6 +172,16 @@ def inv_sell(item_id: int, tg_id: int):
     return add_balance(tg_id, it["price"])
 
 
+def inv_consume(item_id: int, tg_id: int):
+    """Списать мем в апгрейдер (ставка). Возвращает мем или None."""
+    it = inv_get(item_id, tg_id)
+    if not it or it["status"] != "active":
+        return None
+    with _lock, _conn() as c:
+        c.execute("UPDATE inventory SET status='used' WHERE id=?", (item_id,))
+    return it
+
+
 def inv_sell_all(tg_id: int) -> int:
     items = [i for i in inv_list(tg_id) if i["status"] == "active"]
     total = 0

@@ -38,7 +38,7 @@
     </div>
     <button class="drawer-item active" data-goto="home">Главная</button>
     <button class="drawer-item" data-goto="cases">Кейсы</button>
-    <button class="drawer-item" data-soon="Апгрейдер">Апгрейдер</button>
+    <button class="drawer-item" data-goto="upgrade">Апгрейдер</button>
     <button class="drawer-item" data-soon="Розыгрыши">Розыгрыши</button>
     <button class="drawer-item" data-goto="profile">Профиль</button>
     <button class="drawer-item" data-goto="settings">Настройки</button>
@@ -52,7 +52,7 @@
     <button class="tnav-btn logo-mini"><img class="logo-img mini" src="assets/logo.jpg" alt="">GG<span>УРМ</span></button>
     <button class="tnav-btn active" data-goto="home">ГЛАВНАЯ</button>
     <button class="tnav-btn" data-goto="cases">КЕЙСЫ</button>
-    <button class="tnav-btn" data-soon="Апгрейдер">АПГРЕЙДЕР</button>
+    <button class="tnav-btn" data-goto="upgrade">АПГРЕЙДЕР</button>
     <button class="tnav-btn" data-soon="Розыгрыши">РОЗЫГРЫШИ</button>
     <button class="tnav-btn" data-goto="profile">ПРОФИЛЬ</button>
   </div>
@@ -214,6 +214,34 @@
         <button class="h-btn" id="sellAllBtn">Продать всё</button>
       </div>
       <div class="inventory" id="memeInv"><div class="empty">Мемов пока нет — открой Секретный кейс</div></div>
+    </main>
+
+    <main id="tab-upgrade" class="tab">
+      <h1 class="big-title">АПГРЕЙДЕР</h1>
+      <div class="up-top">
+        <div class="up-slot">
+          <span>ТВОЙ ВКЛАД</span>
+          <button class="up-box" id="upBetBox"><small>Выбрать из инвентаря ↓</small></button>
+        </div>
+        <div class="up-wheel" id="upWheel"><div class="up-wheel-in"><b id="upChance">—</b><small>ШАНС</small></div></div>
+        <div class="up-slot">
+          <span>ЖЕЛАЕМЫЙ ПРЕДМЕТ</span>
+          <button class="up-box" id="upTargetBox"><small>Выбрать цель +</small></button>
+        </div>
+      </div>
+      <button class="btn-open big" id="upGo" disabled>ПРОКАЧАТЬ</button>
+      <div class="spin-status" id="upStatus"></div>
+      <div class="up-cols">
+        <div>
+          <div class="drop-title">ИНВЕНТАРЬ</div>
+          <div class="drop-grid" id="upInv"></div>
+        </div>
+        <div>
+          <div class="drop-title">ВЫБРАТЬ ЦЕЛЬ</div>
+          <input class="search" id="upSearch" placeholder="Поиск мема...">
+          <div class="drop-grid" id="upTargets"></div>
+        </div>
+      </div>
     </main>
 
     <main id="tab-settings" class="tab">

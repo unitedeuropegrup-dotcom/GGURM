@@ -290,6 +290,7 @@ function gotoTab(name) {
   const dw = document.querySelector(`.drawer-item[data-goto="${name}"]`);
   if (dw) dw.classList.add('active');
   document.getElementById('drawerWrap').classList.add('hidden');
+  if (name === 'upgrade') { upBet = null; refreshInv().then(paintUp).catch(paintUp); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 document.getElementById('burgerBtn').onclick = () => document.getElementById('drawerWrap').classList.remove('hidden');
@@ -688,6 +689,93 @@ document.getElementById('wdSubmit').onclick = async () => {
       hour_cd: 'Следующую заявку можно через час', no_nick: 'Введи ник в Roblox', past: 'Выбери будущее время',
       no_item: 'Мем уже в заявке или продан' };
     toast(errs[(r && (r.error || r.detail)) || ''] || 'Не получилось отправить заявку');
+  }
+};
+
+// ---------- АПГРЕЙДЕР ----------
+const UP_TARGETS = [
+  { name: 'Векосик Жиросик', letter: 'В', price: 790 },
+  { name: 'Кот Куки', letter: 'К', price: 675 },
+  { name: 'Ждун', letter: 'Ж', price: 764 },
+];
+let upBet = null, upTarget = null, upBusy = false;
+function upChance(bet, tgt) {
+  if (!bet || !tgt || tgt.price <= 0) return 0;
+  return Math.round(Math.min(95, bet.price / tgt.price * 100) * 10) / 10;
+}
+function paintUp() {
+  const ch = upChance(upBet, upTarget);
+  document.getElementById('upChance').textContent = (upBet && upTarget) ? ch + '%' : '—';
+  document.getElementById('upWheel').style.background =
+    `conic-gradient(var(--green) 0% ${ch}%, rgba(255,70,70,.85) ${ch}% 100%)`;
+  document.getElementById('upBetBox').innerHTML = upBet
+    ? `<div class="meme-tile"><b>${upBet.letter}</b></div><div><b>${upBet.name}</b><small>${upBet.price} GG</small></div>` : '<small>Выбрать из инвентаря ↓</small>';
+  document.getElementById('upTargetBox').innerHTML = upTarget
+    ? `<div class="meme-tile"><b>${upTarget.letter}</b></div><div><b>${upTarget.name}</b><small>${upTarget.price} GG</small></div>` : '<small>Выбрать цель +</small>';
+  document.getElementById('upGo').disabled = !(upBet && upTarget) || upBusy;
+  const inv = memes.filter(m => !m.status || m.status === 'active');
+  document.getElementById('upInv').innerHTML = inv.length ? inv.map(m => `
+    <button class="wd-item${upBet && String(upBet.id) === String(m.id) ? ' sel' : ''}" data-id="${m.id}">
+      <div class="meme-tile xs"><b>${m.letter}</b></div>
+      <div><b>${m.name}</b><small>${m.price} GG</small></div>
+    </button>`).join('') : '<div class="empty">Инвентарь пуст</div>';
+  document.getElementById('upInv').querySelectorAll('.wd-item').forEach(b => b.onclick = () => {
+    const m = inv.find(x => String(x.id) === String(b.dataset.id));
+    if (m) { upBet = m; paintUp(); }
+  });
+  const q = (document.getElementById('upSearch').value || '').toLowerCase();
+  document.getElementById('upTargets').innerHTML = UP_TARGETS
+    .filter(t => t.name.toLowerCase().includes(q))
+    .map(t => {
+      const c = upBet ? upChance(upBet, t) + '%' : '—%';
+      return `<button class="wd-item${upTarget && upTarget.name === t.name ? ' sel' : ''}" data-n="${t.name}">
+        <div class="meme-tile xs"><b>${t.letter}</b></div>
+        <div><b>${t.name}</b><small>${t.price} GG • ${c}</small></div>
+      </button>`;
+    }).join('');
+  document.getElementById('upTargets').querySelectorAll('.wd-item').forEach(b => b.onclick = () => {
+    upTarget = UP_TARGETS.find(t => t.name === b.dataset.n) || null;
+    paintUp();
+  });
+}
+document.getElementById('upSearch').oninput = paintUp;
+document.getElementById('upGo').onclick = async () => {
+  if (upBusy || !upBet || !upTarget) return;
+  upBusy = true; paintUp(); sfx.open();
+  document.getElementById('upStatus').textContent = 'Крутим…';
+  const wheel = document.getElementById('upWheel');
+  wheel.classList.add('spin');
+  const tick = setInterval(sfx.tick, 120);
+  await new Promise(r => setTimeout(r, 2200));
+  clearInterval(tick); wheel.classList.remove('spin');
+  let win, item = null;
+  if (serverMode) {
+    const r = await api('/api/upgrade', { item_id: upBet.id, target: upTarget.name });
+    if (!r || !r.ok) { upBusy = false; paintUp(); sfx.error(); document.getElementById('upStatus').textContent = ''; return toast('Не получилось: мем уже использован?'); }
+    win = r.win;
+    if (win) { item = r.item; lastMeme = item; }
+    await refreshInv();
+  } else {
+    const ch = upChance(upBet, upTarget);
+    win = Math.random() * 100 < ch;
+    const i = memes.findIndex(m => String(m.id) === String(upBet.id));
+    if (i >= 0) memes.splice(i, 1);
+    if (win) {
+      item = { id: Date.now(), name: upTarget.name, letter: upTarget.letter, price: upTarget.price, won_ts: Date.now(), status: 'active' };
+      memes.unshift(item);
+      lastMeme = item;
+    }
+    opened += 1; save(); render();
+  }
+  upBet = null; upBusy = false; paintUp();
+  if (win && item) {
+    pushFeed({ name: item.name, letter: item.letter, price: item.price });
+    document.getElementById('upStatus').textContent = `Успех! Забрал ${item.name}`;
+    showWin(iconHTML({ letter: item.letter }, 'big'), item.name, `${item.price} GG • мем в инвентаре`, { price: item.price });
+    lastMeme = item;
+  } else {
+    document.getElementById('upStatus').textContent = 'Неудача — мем сгорел';
+    sfx.error(); tg?.HapticFeedback?.notificationOccurred('error');
   }
 };
 

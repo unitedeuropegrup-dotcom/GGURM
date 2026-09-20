@@ -32,6 +32,17 @@ SECRET_PRICE = 89
 STAR_RATE = 2  # 1 звезда = 2 GG
 FREE_W = [(2, 70), (5, 15), (12, 8), (30, 4.5), (60, 2.5)]
 SECRET_W = [("Мем Из 2026", "М", 39, 49), ("Акула Пон", "А", 48, 27.98), ("Векосини Сигмаини", "В", 98, 3.5)]
+UPGRADE_TARGETS = [
+    {"name": "Векосик Жиросик", "letter": "В", "price": 790},
+    {"name": "Кот Куки", "letter": "К", "price": 675},
+    {"name": "Ждун", "letter": "Ж", "price": 764},
+]
+
+
+def upgrade_chance(bet_price: int, target_price: int) -> float:
+    if target_price <= 0 or bet_price <= 0:
+        return 0.0
+    return round(min(95.0, bet_price / target_price * 100), 1)
 
 _bot = None
 
@@ -409,6 +420,42 @@ class WdIn(BaseModel):
     item_id: int = 0
     roblox: str = ""
     slot_ts: int = 0
+
+
+class UpIn(BaseModel):
+    initData: str = ""
+    item_id: int = 0
+    target: str = ""
+
+
+@app.post("/api/upgrade_targets")
+def api_upgrade_targets(body: In):
+    need_user(body.initData)
+    return {"ok": True, "targets": UPGRADE_TARGETS}
+
+
+@app.post("/api/upgrade")
+def api_upgrade(body: UpIn):
+    import random as _rnd
+    u = need_user(body.initData)
+    uid = int(u["id"])
+    tgt = next((t for t in UPGRADE_TARGETS if t["name"] == body.target), None)
+    if not tgt:
+        raise HTTPException(400, "no target")
+    bet = db.inv_consume(body.item_id, uid)
+    if not bet:
+        raise HTTPException(400, "no item")
+    chance = upgrade_chance(bet["price"], tgt["price"])
+    win = _rnd.random() * 100 < chance
+    item = None
+    if win:
+        iid = db.inv_add(uid, tgt["name"], tgt["letter"], tgt["price"])
+        item = {"id": iid, "name": tgt["name"], "letter": tgt["letter"], "price": tgt["price"]}
+        db.push_feed(uid, u.get("first_name", "Игрок"), "", tgt["price"])
+    from db import _conn, _lock
+    with _lock, _conn() as c:
+        c.execute("UPDATE users SET opened=opened+1 WHERE tg_id=?", (uid,))
+    return {"ok": True, "win": win, "chance": chance, "item": item}
 
 
 @app.post("/api/withdraw")
