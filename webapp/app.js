@@ -219,8 +219,18 @@ async function api(path, body, method, timeoutMs) {
 }
 let _connecting = false;
 async function initBackend() {
-  if (!BACKEND_URL || !tg?.initData || serverMode || _connecting) return;
+  if (!BACKEND_URL || serverMode || _connecting) return;
+  if (!tg?.initData) { toast('Открой через Telegram, а не через браузер'); return; }
   _connecting = true;
+  try {
+    const h = await fetch(BACKEND_URL + '/api/health', { cache: 'no-store', signal: AbortSignal.timeout(12000) });
+    if (!h.ok) throw 0;
+  } catch(e) {
+    _connecting = false;
+    toast('Сервер не отвечает с твоего устройства');
+    setTimeout(() => { if (!serverMode) initBackend(); }, 20000);
+    return;
+  }
   let me = null;
   for (let i = 0; i < 4 && !me; i++) {
     me = await api('/api/me', null, null, 25000);
