@@ -10,6 +10,13 @@ import db
 
 log = logging.getLogger("ggurm")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "5355350906") or 0)  # создатель бота @nojexo
+ADMIN_USERNAMES = {u.strip().lower() for u in os.getenv("ADMIN_USERNAMES", "nojexo").split(",") if u.strip()}
+
+
+def is_admin(u: types.User) -> bool:
+    if ADMIN_ID and u.id == ADMIN_ID:
+        return True
+    return bool(u.username) and u.username.lower() in ADMIN_USERNAMES
 # USE_CODES=0 (по умолчанию): GG начисляются сразу в общую БД (нужен server.py онлайн).
 # USE_CODES=1: после оплаты бот выдаёт чек GGDP-... (офлайн-режим без backend).
 USE_CODES = os.getenv("USE_CODES", "0") == "1"
@@ -241,7 +248,7 @@ def _who(u: types.User) -> str:
 
 @dp.callback_query(F.data.startswith("reply:"))
 async def cb_reply(cq: types.CallbackQuery):
-    if cq.from_user.id != ADMIN_ID or not ADMIN_ID:
+    if not is_admin(cq.from_user):
         return await cq.answer("Только для админа")
     try:
         target = int(cq.data.split(":")[1])
@@ -253,7 +260,7 @@ async def cb_reply(cq: types.CallbackQuery):
 
 
 async def _to_admin(bot: Bot, user: types.User, text: str):
-    if not ADMIN_ID:
+    if not ADMIN_ID and not ADMIN_USERNAMES:
         return False
     kb = InlineKeyboardMarkup(inline_keyboard=[[
         InlineKeyboardButton(text="Ответить", callback_data=f"reply:{user.id}")]])
@@ -267,7 +274,7 @@ KEYWORDS = {"баланс", "профиль", "кейс", "бесплатный"
 @dp.message(F.text)
 async def support_catcher(m: types.Message, bot: Bot):
     # ответ админа пользователю
-    if ADMIN_ID and m.from_user.id == ADMIN_ID and m.from_user.id in pending_reply:
+    if is_admin(m.from_user) and m.from_user.id in pending_reply:
         target = pending_reply.pop(m.from_user.id)
         try:
             await bot.send_message(target, f"Ответ поддержки:\n\n{m.text}")
@@ -275,9 +282,9 @@ async def support_catcher(m: types.Message, bot: Bot):
         except Exception:
             await m.answer("Не получилось доставить ответ.")
         return
-    if m.from_user.id == ADMIN_ID:
+    if is_admin(m.from_user):
         pass  # свои сообщения тоже пересылаем себе
-    elif not ADMIN_ID:
+    elif not ADMIN_ID and not ADMIN_USERNAMES:
         await m.answer("Поддержка пока не настроена.")
         return
     if (m.text or "").strip().lower() in KEYWORDS:

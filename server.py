@@ -24,6 +24,13 @@ from bot_handlers import dp, configure, PACKAGES
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "5355350906") or 0)  # создатель бота @nojexo
+ADMIN_USERNAMES = {u.strip().lower() for u in os.getenv("ADMIN_USERNAMES", "nojexo").split(",") if u.strip()}
+
+
+def is_admin(uid: int, username: str | None) -> bool:
+    if ADMIN_ID and int(uid) == ADMIN_ID:
+        return True
+    return bool(username) and username.lower() in ADMIN_USERNAMES
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WEBAPP_DIR = os.path.join(BASE_DIR, "webapp")
 
@@ -178,12 +185,12 @@ app.router.lifespan_context = lifespan
 def api_me(body: In):
     u = need_user(body.initData)
     st = db.get_user(int(u["id"]))
-    return {"ok": True, "is_admin": ADMIN_ID and int(u["id"]) == ADMIN_ID, **st}
+    return {"ok": True, "is_admin": is_admin(int(u["id"]), u.get("username")), **st}
 
 
 def need_admin(init_data: str) -> int:
     u = need_user(init_data)
-    if not ADMIN_ID or int(u["id"]) != ADMIN_ID:
+    if not is_admin(int(u["id"]), u.get("username")):
         raise HTTPException(403, "not admin")
     return int(u["id"])
 
