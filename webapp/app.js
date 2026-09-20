@@ -86,7 +86,7 @@ let freeCdUntil = parseInt(localStorage.getItem('ggurm_free_cd') || '0', 10);
 let usedCodes = JSON.parse(localStorage.getItem('ggurm_used_codes') || '[]');
 let depoBonus = localStorage.getItem('ggurm_depo_bonus') === '1';
 let questShared = false, questChannel = false, speed = 'slow', spinning = false;
-let curCase = 'free', wdSel = null;
+let curCase = 'free', wdSel = null, freeSecret = 0;
 
 function save() {
   localStorage.setItem('ggurm_balance', balance);
@@ -250,13 +250,14 @@ async function initBackend() {
       localStorage.setItem('ggurm_imported', '1');
     }
   } else { balance = me.balance; wonTotal = me.won; opened = Math.max(opened, me.opened || 0); }
+  freeSecret = me.free_secret || 0;
   document.getElementById('payBonusNote').textContent = me.bonus ? ' • +15% активно!' : '';
   save(); render(); await refreshInv(); refreshAdmin(); loadLive();
   setInterval(async () => {
     const m = await api('/api/me');
-    if (m && m.ok && (m.balance !== balance || m.won !== wonTotal)) {
+    if (m && m.ok && (m.balance !== balance || m.won !== wonTotal || (m.free_secret || 0) !== freeSecret)) {
       const grew = m.balance > balance;
-      balance = m.balance; wonTotal = m.won; save(); render();
+      balance = m.balance; wonTotal = m.won; freeSecret = m.free_secret || 0; save(); render();
       if (grew) { toast('Баланс пополнен!'); sfx.coin(); tg?.HapticFeedback?.notificationOccurred('success'); }
     }
   }, 8000);
@@ -310,7 +311,7 @@ function showDetail(id) {
   document.getElementById('casePhoto').src = c.img;
   document.getElementById('caseMeta').innerHTML = id === 'free'
     ? '<div class="free-note">Бесплатный кейс • каждые 12 часов</div>'
-    : `<div class="detail-meta single"><div><span>Цена</span><b>${SECRET_PRICE} GG</b></div></div>`;
+    : `<div class="detail-meta single"><div><span>Цена</span><b>${SECRET_PRICE} GG</b></div></div>${freeSecret > 0 ? `<div class="free-note">Бесплатных открытий: ${freeSecret}</div>` : ''}`;
   const btn = document.getElementById('openCaseBtn');
   btn.disabled = false;
   btn.textContent = id === 'free' ? 'ОТКРЫТЬ КЕЙС' : `ОТКРЫТЬ ЗА ${SECRET_PRICE} GG`;
@@ -389,7 +390,7 @@ async function buyPack(stars) {
         await new Promise(r => setTimeout(r, 1500));
         const m = await api('/api/me');
         if (m && m.ok && m.balance > balance) {
-          balance = m.balance; wonTotal = m.won; save(); render();
+          balance = m.balance; wonTotal = m.won; freeSecret = m.free_secret || 0; save(); render();
           toast(`Начислено! Баланс: ${balance} GG`); sfx.coin();
           tg?.HapticFeedback?.notificationOccurred('success');
           initBonusNote();
@@ -415,6 +416,8 @@ document.getElementById('promoApply').onclick = async () => {
     const r = await api('/api/promo', { code: v });
     if (!r) { sfx.error(); return toast('Нет связи с сервером'); }
     if (r.ok && r.kind === 'bonus') { document.getElementById('promoModal').classList.add('hidden'); initBonusNote(); toast('Промокод применён: +15% к следующему пополнению!'); sfx.coin(); }
+    else if (r.ok && r.kind === 'freecase') { document.getElementById('promoModal').classList.add('hidden'); toast('Промокод применён: бесплатный кейс доступен!'); sfx.coin(); }
+    else if (r.ok && r.kind === 'secret') { document.getElementById('promoModal').classList.add('hidden'); toast('Промокод применён: +1 открытие Секретного!'); sfx.coin(); }
     else if (r.ok && r.kind === 'credit') { balance = r.balance; save(); render(); document.getElementById('promoModal').classList.add('hidden'); toast(`Баланс пополнен: +${r.gg} GG!`); sfx.coin(); }
     else if (r.error === 'used') { sfx.error(); toast('Этот чек уже использован'); }
     else if (r.error === 'already') toast('Промокод уже активен');
@@ -788,7 +791,8 @@ async function refreshAdmin() {
   if (r && r.ok) {
     isAdmin = true; row.classList.remove('hidden');
     document.getElementById('admPromos').innerHTML = r.promos.length
-      ? r.promos.map(p => `<div class="inv-item"><div><b>${p.code}</b><small>${p.kind === 'coins' ? p.amount + ' GG' : '+15%'} • осталось ${p.uses}</small></div></div>`).join('')
+      ? r.promos.map(p => { const what = p.kind === 'coins' ? p.amount + ' GG' : p.kind === 'bonus' ? '+15%' : p.kind === 'freecase' ? 'бесплатный кейс' : 'секретный кейс';
+        return `<div class="inv-item"><div><b>${p.code}</b><small>${what} • осталось ${p.uses}</small></div></div>`; }).join('')
       : '<div class="empty">Промокодов пока нет</div>';
   } else { isAdmin = false; box.classList.add('hidden'); }
 }
@@ -812,7 +816,7 @@ document.getElementById('admPromo').onclick = async () => {
 };
 document.getElementById('admReset').onclick = async () => {
   const t = document.getElementById('admTarget').value.trim().toLowerCase() || 'all';
-  if (!await confirmDlg('Сбросить КД?', t === 'all' ? 'Сбросить перезарядку бесплатного кейса ВСЕМ?' : `Сбросить перезарядку игроку ${t}?`)) return;
+  if (!await confirmDlg('Сбросить КД?', t === 'all' ? 'Точно сбросить перезарядку ВСЕМ игрокам?' : `Точно сбросить перезарядку игроку ${t}?`)) return;
   const r = await api('/api/admin_reset_cd', { target: t });
   if (r && r.ok) toast(`Сброшено: ${r.n}`);
   else { sfx.error(); toast('Не получилось'); }

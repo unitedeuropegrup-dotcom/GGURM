@@ -265,6 +265,16 @@ def api_promo(body: PromoIn):
         if kind == "bonus":
             db.set_bonus(uid, 1)
             return {"ok": True, "kind": "bonus"}
+        if kind == "freecase":
+            from db import _conn as _c2, _lock as _l2
+            with _l2, _c2() as c:
+                c.execute("UPDATE users SET free_cd=0 WHERE tg_id=?", (uid,))
+            return {"ok": True, "kind": "freecase"}
+        if kind == "secret":
+            from db import _conn as _c3, _lock as _l3
+            with _l3, _c3() as c:
+                c.execute("UPDATE users SET free_secret=free_secret+1 WHERE tg_id=?", (uid,))
+            return {"ok": True, "kind": "secret"}
         st = db.get_user(uid)
         if st["bonus"]:
             amount = int(amount * 1.15)
@@ -353,9 +363,17 @@ async def api_open_free(body: In):
 def api_open_secret(body: In):
     u = need_user(body.initData)
     uid = int(u["id"])
-    bal = db.deduct_balance(uid, SECRET_PRICE)
-    if bal is None:
-        raise HTTPException(402, "need 89 GG")
+    st0 = db.get_user(uid)
+    free_open = (st0.get("free_secret") or 0) > 0
+    if free_open:
+        from db import _conn as _c4, _lock as _l4
+        with _l4, _c4() as c:
+            c.execute("UPDATE users SET free_secret=free_secret-1 WHERE tg_id=?", (uid,))
+        bal = st0["balance"]
+    else:
+        bal = db.deduct_balance(uid, SECRET_PRICE)
+        if bal is None:
+            raise HTTPException(402, "need 89 GG")
     name, letter, price, _w = roll_w(SECRET_W)
     item_id = db.inv_add(uid, name, letter, price)
     from db import _conn, _lock

@@ -32,7 +32,7 @@ def init_db():
             c.execute("ALTER TABLE feed ADD COLUMN ts INTEGER DEFAULT 0")
         except sqlite3.OperationalError:
             pass
-        for col in ("free_cd INTEGER DEFAULT 0",):
+        for col in ("free_cd INTEGER DEFAULT 0", "free_secret INTEGER DEFAULT 0"):
             try:
                 c.execute(f"ALTER TABLE users ADD COLUMN {col}")
             except sqlite3.OperationalError:
@@ -51,12 +51,13 @@ def init_db():
 
 def get_user(tg_id: int) -> dict:
     with _lock, _conn() as c:
-        row = c.execute("SELECT balance, won, opened, bonus, imported FROM users WHERE tg_id=?",
+        row = c.execute("SELECT balance, won, opened, bonus, imported, free_secret FROM users WHERE tg_id=?",
                         (tg_id,)).fetchone()
         if not row:
             c.execute("INSERT INTO users(tg_id, balance) VALUES(?,?)", (tg_id, START_BALANCE))
-            return {"balance": START_BALANCE, "won": 0, "opened": 0, "bonus": 0, "imported": 0}
-        return {"balance": row[0], "won": row[1], "opened": row[2], "bonus": row[3], "imported": row[4]}
+            return {"balance": START_BALANCE, "won": 0, "opened": 0, "bonus": 0, "imported": 0, "free_secret": 0}
+        return {"balance": row[0], "won": row[1], "opened": row[2], "bonus": row[3], "imported": row[4],
+                "free_secret": row[5] or 0}
 
 
 def add_balance(tg_id: int, gg: int) -> int:
@@ -263,7 +264,7 @@ def wd_history(tg_id: int) -> list:
 # ---------- админка ----------
 def promo_create(code: str, kind: str, amount: int, uses: int) -> bool:
     code = (code or "").strip().upper()
-    if not code or kind not in ("coins", "bonus") or uses < 1:
+    if not code or kind not in ("coins", "bonus", "freecase", "secret") or uses < 1:
         return False
     with _lock, _conn() as c:
         try:
