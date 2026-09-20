@@ -337,11 +337,21 @@
     <button class="quest-close" id="payClose">✕</button>
     <div class="quest-icon">⭐</div>
     <h2>Пополнение</h2>
-    <p class="quest-sub">Курс: <b class="green">1 звезда = 2 GG</b><span id="payBonusNote"></span></p>
-    <div class="pay-chips" id="payChips"></div>
-    <input class="search" id="payStars" type="number" min="1" max="10000" inputmode="numeric" placeholder="Сколько звёзд?">
-    <div class="pay-preview" id="payPreview">Введи количество звёзд</div>
-    <button class="btn-open big" id="payGo">ОПЛАТИТЬ</button>
+    <div class="pay-tabs">
+      <button class="pay-tab active" id="payTabStars">Звёзды</button>
+      <button class="pay-tab" id="payTabMemes">Мемы</button>
+    </div>
+    <div id="payStarsBox">
+      <p class="quest-sub">Курс: <b class="green">1 звезда = 2 GG</b><span id="payBonusNote"></span></p>
+      <div class="pay-chips" id="payChips"></div>
+      <input class="search" id="payStars" type="number" min="1" max="10000" inputmode="numeric" placeholder="Сколько звёзд?">
+      <div class="pay-preview" id="payPreview">Введи количество звёзд</div>
+      <button class="btn-open big" id="payGo">ОПЛАТИТЬ</button>
+    </div>
+    <div id="payMemesBox" class="hidden">
+      <p class="quest-sub">Пополнение мемов скоро появится.</p>
+      <button class="btn-open big" disabled>СКОРО</button>
+    </div>
     <p class="quest-sub small">Оплата звёздами внутри приложения. GG падают на баланс сразу.</p>
   </div>
 </div>

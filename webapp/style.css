@@ -275,6 +275,9 @@ img{max-width:100%}
 .quest-card .search{margin-bottom:12px;text-align:center;font-weight:800;letter-spacing:1px}
 .pay-packs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 12px}
 .pay-chips{display:flex;gap:8px;margin:4px 0 10px}
+.pay-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pay-tab{background:rgba(0,0,0,.35);border:1px solid var(--border);color:var(--muted);font-family:'Russo One';font-size:14px;letter-spacing:1px;padding:11px;border-radius:12px;cursor:pointer}
+.pay-tab.active{background:linear-gradient(135deg,var(--green),#00994d);color:#04120a;border-color:transparent;box-shadow:0 4px 16px rgba(34,255,136,.3)}
 .pay-chip{flex:1;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:10px;color:var(--gold);font-weight:800;padding:10px 4px;cursor:pointer}
 .pay-chip:active{border-color:var(--gold)}
 .pay-preview{text-align:center;color:var(--gold);font-weight:900;font-size:17px;margin:2px 0 10px;min-height:24px}

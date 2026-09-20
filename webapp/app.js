@@ -350,6 +350,18 @@ function updPayPreview() {
     (s >= 1 && s <= 10000) ? `${s} звёзд → ${s * 2} GG` : 'Введи количество звёзд (1–10000)';
 }
 document.getElementById('payClose').onclick = () => document.getElementById('payModal').classList.add('hidden');
+document.getElementById('payTabStars').onclick = () => {
+  document.getElementById('payTabStars').classList.add('active');
+  document.getElementById('payTabMemes').classList.remove('active');
+  document.getElementById('payStarsBox').classList.remove('hidden');
+  document.getElementById('payMemesBox').classList.add('hidden');
+};
+document.getElementById('payTabMemes').onclick = () => {
+  document.getElementById('payTabMemes').classList.add('active');
+  document.getElementById('payTabStars').classList.remove('active');
+  document.getElementById('payMemesBox').classList.remove('hidden');
+  document.getElementById('payStarsBox').classList.add('hidden');
+};
 document.getElementById('payStars').oninput = updPayPreview;
 document.getElementById('payGo').onclick = () => {
   const s = parseInt(document.getElementById('payStars').value, 10);
