@@ -17,6 +17,30 @@ def is_admin(u: types.User) -> bool:
     if ADMIN_ID and u.id == ADMIN_ID:
         return True
     return bool(u.username) and u.username.lower() in ADMIN_USERNAMES
+
+
+# Приватный режим: бот отвечает только владельцу
+PRIVATE_MODE = os.getenv("PRIVATE_MODE", "1") == "1"
+
+
+from aiogram import BaseMiddleware
+
+
+class PrivateMiddleware(BaseMiddleware):
+    async def __call__(self, handler, event, data):
+        if not PRIVATE_MODE or not ADMIN_ID and not ADMIN_USERNAMES:
+            return await handler(event, data)
+        u = data.get("event_from_user")
+        if u and is_admin(u):
+            return await handler(event, data)
+        if isinstance(event, types.Message):
+            await event.answer("Бот работает только у владельца.")
+        elif isinstance(event, types.CallbackQuery):
+            await event.answer("Недоступно.", show_alert=True)
+        return None
+
+
+dp.update.middleware(PrivateMiddleware())
 # USE_CODES=0 (по умолчанию): GG начисляются сразу в общую БД (нужен server.py онлайн).
 # USE_CODES=1: после оплаты бот выдаёт чек GGDP-... (офлайн-режим без backend).
 USE_CODES = os.getenv("USE_CODES", "0") == "1"
