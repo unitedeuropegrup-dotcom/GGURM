@@ -47,6 +47,8 @@ def init_db():
             status TEXT DEFAULT 'pending', created_ts INTEGER)""")
         c.execute("""CREATE TABLE IF NOT EXISTS promos(
             code TEXT PRIMARY KEY, kind TEXT, amount INTEGER, uses INTEGER)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS credited(
+            uuid TEXT PRIMARY KEY, tg_id INTEGER, kind TEXT, amount INTEGER, ts INTEGER)""")
 
 
 def get_user(tg_id: int) -> dict:
@@ -127,14 +129,14 @@ def get_top(min_price: int = 70, period_s: int = 86400, limit: int = 10) -> list
 
 # ---------- мемы / вывод ----------
 def deduct_balance(tg_id: int, amount: int):
-    """Списать GG. Возвращает новый баланс или None если не хватает."""
+    """Атомарно списать GG. Возвращает новый баланс или None если не хватает."""
     get_user(tg_id)
     with _lock, _conn() as c:
-        bal = c.execute("SELECT balance FROM users WHERE tg_id=?", (tg_id,)).fetchone()[0]
-        if bal < amount:
+        cur = c.execute("UPDATE users SET balance=balance-? WHERE tg_id=? AND balance>=?",
+                        (amount, tg_id, amount))
+        if cur.rowcount == 0:
             return None
-        c.execute("UPDATE users SET balance=balance-? WHERE tg_id=?", (amount, tg_id))
-        return bal - amount
+        return c.execute("SELECT balance FROM users WHERE tg_id=?", (tg_id,)).fetchone()[0]
 
 
 def set_free_cd(tg_id: int, ts: int):
@@ -289,3 +291,39 @@ def promo_redeem(code: str):
             return None
         c.execute("UPDATE promos SET uses=uses-1 WHERE code=?", (code,))
         return (r[0], r[1])
+
+
+# ---------- слияние офлайн-заработков ----------
+def merge_apply(tg_id: int, entries: list) -> list:
+    """Применяет записи outbox (идемпотентно по uuid). Возвращает список применённых uuid."""
+    import time as _t
+    applied = []
+    get_user(tg_id)
+    for e in (entries or [])[:100]:
+        if not isinstance(e, dict):
+            continue
+        uid = str(e.get("id", ""))[:64]
+        kind = e.get("kind")
+        if not uid or kind not in ("coins", "meme"):
+            continue
+        with _lock, _conn() as c:
+            if c.execute("SELECT 1 FROM credited WHERE uuid=?", (uid,)).fetchone():
+                continue
+            if kind == "coins":
+                amt = max(-10_000_000, min(10_000_000, int(e.get("amount", 0) or 0)))
+                if amt < 0:
+                    bal = c.execute("SELECT balance FROM users WHERE tg_id=?", (tg_id,)).fetchone()[0]
+                    amt = max(amt, -bal)
+                if amt:
+                    c.execute("UPDATE users SET balance=balance+?, won=won+? WHERE tg_id=?",
+                              (amt, max(0, amt), tg_id))
+            else:
+                name = str(e.get("name", "Мем"))[:40]
+                letter = str(e.get("letter", "М"))[:2]
+                price = max(0, min(10_000_000, int(e.get("price", 0) or 0)))
+                c.execute("INSERT INTO inventory(tg_id, name, letter, price, won_ts, status) VALUES(?,?,?,?,?,'active')",
+                          (tg_id, name, letter, price, int(_t.time())))
+            c.execute("INSERT INTO credited(uuid, tg_id, kind, amount, ts) VALUES(?,?,?,?,?)",
+                      (uid, tg_id, kind, int(e.get("amount", e.get("price", 0)) or 0), int(_t.time())))
+            applied.append(uid)
+    return applied

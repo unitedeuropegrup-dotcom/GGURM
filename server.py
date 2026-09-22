@@ -77,7 +77,7 @@ def roll_w(items):
 
 def fmt_ts(ts: int) -> str:
     import datetime
-    return datetime.datetime.fromtimestamp(ts).strftime("%d.%m %H:%M")
+    return (datetime.datetime.fromtimestamp(ts) + datetime.timedelta(hours=3)).strftime("%d.%m %H:%M")
 
 
 async def reminder_loop():
@@ -348,6 +348,40 @@ def api_top():
 class MemeIn(BaseModel):
     initData: str = ""
     items: list = []
+
+
+class MergeIn(BaseModel):
+    initData: str = ""
+    entries: list = []
+
+
+@app.post("/api/merge")
+def api_merge(body: MergeIn):
+    u = need_user(body.initData)
+    uid = int(u["id"])
+    applied = db.merge_apply(uid, body.entries)
+    st = db.get_user(uid)
+    return {"ok": True, "applied": applied, **st}
+
+
+CHANNEL = "GGURMNEWS"
+
+
+@app.post("/api/check_sub")
+async def api_check_sub(body: In):
+    u = need_user(body.initData)
+    sub = False
+    try:
+        async with httpx.AsyncClient(timeout=10) as cl:
+            r = await cl.post(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember",
+                json={"chat_id": f"@{CHANNEL}", "user_id": int(u["id"])})
+            d = r.json()
+            if d.get("ok"):
+                sub = d["result"].get("status") in ("creator", "administrator", "member")
+    except Exception:
+        pass
+    return {"ok": True, "sub": sub}
 
 
 @app.post("/api/open_free")

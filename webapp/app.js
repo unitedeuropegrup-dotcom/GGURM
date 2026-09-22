@@ -84,7 +84,21 @@ let memes = JSON.parse(localStorage.getItem('ggurm_memes') || '[]'); // {id,name
 let feed = JSON.parse(localStorage.getItem('ggurm_feed') || '[]');
 let freeCdUntil = parseInt(localStorage.getItem('ggurm_free_cd') || '0', 10);
 let usedCodes = JSON.parse(localStorage.getItem('ggurm_used_codes') || '[]');
+let outbox = JSON.parse(localStorage.getItem('ggurm_outbox') || '[]'); // офлайн-заработки для слияния
 let depoBonus = localStorage.getItem('ggurm_depo_bonus') === '1';
+function uuid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 9); }
+function queueOut(entry) { entry.id = entry.id || uuid(); outbox.push(entry); outbox = outbox.slice(-200); save(); }
+async function flushOutbox() {
+  if (!serverMode || !outbox.length) return;
+  const r = await api('/api/merge', { entries: outbox });
+  if (r && r.ok) {
+    const done = new Set(r.applied || []);
+    outbox = outbox.filter(e => !done.has(e.id));
+    balance = r.balance; wonTotal = r.won; opened = Math.max(opened, r.opened || 0);
+    freeSecret = r.free_secret || 0;
+    save(); render(); await refreshInv();
+  }
+}
 let questShared = false, questChannel = false, speed = 'slow', spinning = false;
 let curCase = 'free', wdSel = null, freeSecret = 0;
 
@@ -96,6 +110,7 @@ function save() {
   localStorage.setItem('ggurm_feed', JSON.stringify(feed.slice(0, 20)));
   localStorage.setItem('ggurm_free_cd', freeCdUntil);
   localStorage.setItem('ggurm_used_codes', JSON.stringify(usedCodes.slice(-50)));
+  localStorage.setItem('ggurm_outbox', JSON.stringify(outbox.slice(-200)));
   localStorage.setItem('ggurm_depo_bonus', depoBonus ? '1' : '0');
 }
 function toast(msg) {
@@ -247,12 +262,13 @@ async function initBackend() {
     if (im && im.ok) {
       balance = im.balance; wonTotal = im.won; opened = Math.max(opened, im.opened || 0);
       if (memes.length) { await api('/api/import_memes', { items: memes }); memes = []; }
+      outbox = [];
       localStorage.setItem('ggurm_imported', '1');
     }
   } else { balance = me.balance; wonTotal = me.won; opened = Math.max(opened, me.opened || 0); }
   freeSecret = me.free_secret || 0;
   document.getElementById('payBonusNote').textContent = me.bonus ? ' • +15% активно!' : '';
-  save(); render(); await refreshInv(); refreshAdmin(); loadLive();
+  save(); render(); await refreshInv(); refreshAdmin(); loadLive(); flushOutbox();
   setInterval(async () => {
     const m = await api('/api/me');
     if (m && m.ok && (m.balance !== balance || m.won !== wonTotal || (m.free_secret || 0) !== freeSecret)) {
@@ -260,6 +276,7 @@ async function initBackend() {
       balance = m.balance; wonTotal = m.won; freeSecret = m.free_secret || 0; save(); render();
       if (grew) { toast('Баланс пополнен!'); sfx.coin(); tg?.HapticFeedback?.notificationOccurred('success'); }
     }
+    flushOutbox();
   }, 8000);
 }
 async function refreshInv() {
@@ -436,7 +453,7 @@ document.getElementById('promoApply').onclick = async () => {
     if (usedCodes.includes(v)) { sfx.error(); return toast('Этот чек уже использован'); }
     let g = parseInt(m[2], 10);
     if (depoBonus) { g = Math.floor(g * 1.15); depoBonus = false; }
-    usedCodes.push(v); balance += g; wonTotal += g; save(); render();
+    usedCodes.push(v); balance += g; wonTotal += g; queueOut({ kind: 'coins', amount: g }); save(); render();
     document.getElementById('promoModal').classList.add('hidden');
     toast(`Баланс пополнен: +${g} GG!`); sfx.coin();
     return;
@@ -465,6 +482,16 @@ document.getElementById('openCaseBtn').onclick = () => {
     document.getElementById('questChannelState').textContent = '→';
     document.getElementById('questChannel').classList.remove('done');
     document.getElementById('questModal').classList.remove('hidden');
+    if (serverMode) { // автопроверка подписки на канал
+      api('/api/check_sub').then(r => {
+        if (r && r.sub && !document.getElementById('questModal').classList.contains('hidden')) {
+          questChannel = true;
+          document.getElementById('questChannelState').textContent = '✓';
+          document.getElementById('questChannel').classList.add('done');
+          toast('Подписка найдена!');
+        }
+      });
+    }
   } else {
     openSecret();
   }
@@ -542,7 +569,7 @@ async function sellWonMeme(sell) {
     else { sfx.error(); return toast('Не получилось продать'); }
   } else if (lastMeme) {
     const i = memes.findIndex(m => String(m.id) === String(lastMeme.id));
-    if (i >= 0) { const [m] = memes.splice(i, 1); balance += m.price; wonTotal += m.price; save(); render(); }
+    if (i >= 0) { const [m] = memes.splice(i, 1); balance += m.price; wonTotal += m.price; queueOut({ kind: 'coins', amount: m.price }); save(); render(); }
   }
   lastMeme = null;
   document.getElementById('winModal').classList.add('hidden');
@@ -564,7 +591,7 @@ async function spinFree() {
   } else {
     win = rollW(FREE_ITEMS);
     opened += 1; freeCdUntil = Date.now() + FREE_CD_MS;
-    balance += win.price; wonTotal += win.price;
+    balance += win.price; wonTotal += win.price; queueOut({ kind: 'coins', amount: win.price });
   }
   save(); render();
   const status = await animateRoulette(FREE_ITEMS, win, it => it.price + ' GG');
@@ -594,10 +621,12 @@ async function openSecret() {
   if (balance < SECRET_PRICE) { sfx.error(); return toast('Не хватает GG — пополни баланс'); }
   spinning = true; sfx.open();
   balance -= SECRET_PRICE;
+  queueOut({ kind: 'coins', amount: -SECRET_PRICE });
   const win = rollW(MEMES);
   const item = { id: Date.now(), name: win.name, letter: win.letter, price: win.price, won_ts: Date.now() };
   memes.unshift(item);
   lastMeme = item;
+  queueOut({ kind: 'meme', name: item.name, letter: item.letter, price: item.price });
   opened += 1; save(); render();
   const status = await animateRoulette(MEMES, win, it => it.price + ' GG');
   spinning = false;
@@ -617,7 +646,7 @@ async function sellMeme(id) {
   const i = memes.findIndex(m => String(m.id) === String(id));
   if (i < 0) return;
   const [m] = memes.splice(i, 1);
-  balance += m.price; wonTotal += m.price; save(); render();
+  balance += m.price; wonTotal += m.price; queueOut({ kind: 'coins', amount: m.price }); save(); render();
   toast(`Продано за ${m.price} GG`); sfx.coin();
 }
 document.getElementById('sellAllBtn').onclick = async () => {
@@ -631,8 +660,8 @@ document.getElementById('sellAllBtn').onclick = async () => {
     const r = await api('/api/sell_all');
     if (r && r.ok) { balance = r.balance; save(); render(); await refreshInv(); }
   } else {
-    memes = memes.filter(m => m.status && m.status !== 'active');
-    balance += total; wonTotal += total; save(); render();
+  memes = memes.filter(m => m.status && m.status !== 'active');
+  balance += total; wonTotal += total; queueOut({ kind: 'coins', amount: total }); save(); render();
   }
   toast(`Продано всё за ${total} GG`); sfx.coin();
 };

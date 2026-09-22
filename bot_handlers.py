@@ -36,11 +36,11 @@ def configure(webapp_url: str):
 def main_kb():
     if not WEBAPP_URL.startswith("https://"):
         return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="💳 Пополнить за ⭐", callback_data="deposit")],
+            [InlineKeyboardButton(text="Пополнить за звёзды", callback_data="deposit")],
         ])
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🟢 Открыть GGУРМ", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton(text="📦 Бесплатный кейс", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton(text="Открыть GGУРМ", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton(text="Бесплатный кейс", web_app=WebAppInfo(url=WEBAPP_URL))],
         [InlineKeyboardButton(text="Пополнить за звёзды", callback_data="deposit")],
     ])
 
@@ -49,7 +49,7 @@ def deposit_kb():
     rows = [[InlineKeyboardButton(text=f"{s} звёзд → {g} GG", callback_data=f"buy:{s}:{g}")]
             for s, g in PACKAGES]
     if WEBAPP_URL.startswith("https://"):
-        rows.append([InlineKeyboardButton(text="🟢 Открыть GGУРМ", web_app=WebAppInfo(url=WEBAPP_URL))])
+        rows.append([InlineKeyboardButton(text="Открыть GGУРМ", web_app=WebAppInfo(url=WEBAPP_URL))])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -146,7 +146,7 @@ async def cb_buy(cq: types.CallbackQuery, bot: Bot):
         )
     except Exception as e:
         log.exception("send_invoice failed")
-        await cq.message.answer("😕 Не получилось создать счёт. Попробуй позже или напиши в поддержку.")
+        await cq.message.answer("Не получилось создать счёт. Попробуй позже или напиши в поддержку.")
 
 
 @dp.pre_checkout_query()
@@ -260,7 +260,7 @@ async def cb_reply(cq: types.CallbackQuery):
 
 
 async def _to_admin(bot: Bot, user: types.User, text: str):
-    if not ADMIN_ID and not ADMIN_USERNAMES:
+    if not ADMIN_ID:
         return False
     kb = InlineKeyboardMarkup(inline_keyboard=[[
         InlineKeyboardButton(text="Ответить", callback_data=f"reply:{user.id}")]])
@@ -289,7 +289,14 @@ async def support_catcher(m: types.Message, bot: Bot):
         return
     if (m.text or "").strip().lower() in KEYWORDS:
         return await fallback(m)
-    await _to_admin(bot, m.from_user, m.text or "")
+    if (m.text or "").startswith("/"):
+        return
+    try:
+        await _to_admin(bot, m.from_user, m.text or "")
+    except Exception:
+        log.exception("support forward failed")
+        await m.answer("Не получилось отправить. Попробуй позже.")
+        return
     await m.answer("Сообщение отправлено. Админ ответит сюда.")
 
 
@@ -297,11 +304,14 @@ async def support_catcher(m: types.Message, bot: Bot):
 async def support_photo(m: types.Message, bot: Bot):
     if not ADMIN_ID:
         return
-    await bot.forward_message(ADMIN_ID, m.chat.id, m.message_id)
-    kb = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="Ответить", callback_data=f"reply:{m.from_user.id}")]])
-    await bot.send_message(ADMIN_ID, f"Фото от {_who(m.from_user)}. Подпись: {m.caption or '—'}", reply_markup=kb)
-    await m.answer("Сообщение отправлено. Админ ответит сюда.")
+    try:
+        await bot.forward_message(ADMIN_ID, m.chat.id, m.message_id)
+        kb = InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(text="Ответить", callback_data=f"reply:{m.from_user.id}")]])
+        await bot.send_message(ADMIN_ID, f"Фото от {_who(m.from_user)}. Подпись: {m.caption or '—'}", reply_markup=kb)
+        await m.answer("Сообщение отправлено. Админ ответит сюда.")
+    except Exception:
+        log.exception("support photo failed")
 
 
 @dp.message(Command("support"))
