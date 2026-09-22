@@ -858,6 +858,16 @@ document.getElementById('soundRow').onclick = () => {
   paintSound(); sfx.click();
   toast(soundOn() ? 'Звуки включены' : 'Звуки выключены');
 };
+// локальная панель (без сервера — только это устройство)
+document.getElementById('locGive').onclick = () => {
+  const n = parseInt(document.getElementById('locAmt').value, 10);
+  if (!(n >= 1 && n <= 1000000000)) { sfx.error(); return toast('Введи сумму'); }
+  balance += n; wonTotal += n; queueOut({ kind: 'coins', amount: n }); save(); render();
+  toast(`Выдано себе: +${n} GG`); sfx.coin();
+};
+document.getElementById('locResetCd').onclick = () => {
+  freeCdUntil = 0; save(); render(); toast('Перезарядка сброшена'); sfx.coin();
+};
 
 // ---------- SUPPORT (через чат с ботом) ----------
 function openSupport() {
