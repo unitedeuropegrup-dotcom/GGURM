@@ -14,14 +14,10 @@ Telegram Mini App + бот с кейсами в стиле Brainrot Battle. Зе
 - `bot.py`: пакеты 25/50/100/500⭐ → 50/100/200/1000 GG. Кнопка «💳 Пополнить за ⭐» → `send_invoice` (XTR, provider_token=""), `pre_checkout` ok, `successful_payment` → бот выдаёт чек `GGDP-<uid>-<gg>-<hex>`.
 - Mini App: ПОПОЛНИТЬ → диплинк `?start=deposit` в чат бота. Чек вводится в ПРОМОКОД: проверка uid + одноразовость (`ggurm_used_codes`). GGURM — не монеты, а +15% к следующему чеку (`ggurm_depo_bonus`, сгорает).
 
-## Команды
-```powershell
-# зависимости бота (использовать py -3, а не python-стаб из Store)
-py -3 -m pip install -r requirements.txt
-# preview Mini App (уже запущен как Job ggurm-preview на :8000)
-# запуск бота
-$env:BOT_TOKEN="..."; $env:WEBAPP_URL="https://..."; py -3 bot.py
-```
+## Хостинг (VPS 144.31.157.231, Ubuntu 22.04)
+- Backend+бот: systemd-служба `ggurm` (`/root/app`, env в `/root/app/.env`), HTTPS 443 через Let's Encrypt (ggurm-api.duckdns.org).
+- Обновление кода: `cd ~/app && git pull` + `systemctl restart ggurm`.
+- Фронт: Vercel (папка webapp/). BACKEND_URL сейчас — VPS.
 
 ## Правила для агента
 - Токен никогда не вписывать в код, только env. Не выводить токен в чат/логи.
