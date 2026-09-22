@@ -5,7 +5,7 @@ if (tg) { tg.ready(); tg.expand(); try{tg.setHeaderColor('#07120c'); tg.setBackg
 const BOT_USERNAME = "GGURM_BOT";
 const CHANNEL_USERNAME = "GGURMNEWS";
 // Backend (мгновенные пополнения, общий баланс/лента, вывод). Пусто — офлайн-режим.
-const BACKEND_URL = "https://ggurm-api.nomadhost.pp.ua";
+const BACKEND_URL = "https://ggurm-api.duckdns.org";
 const PACKS = [[25,50],[50,100],[100,200],[500,1000]];
 const FREE_CD_MS = 12 * 60 * 60 * 1000;
 const SECRET_PRICE = 89;
