@@ -19,6 +19,14 @@ Telegram Mini App + бот с кейсами в стиле Brainrot Battle. Зе
 - Обновление кода: `cd ~/app && git pull` + `systemctl restart ggurm`.
 - Фронт: Vercel (папка webapp/). BACKEND_URL сейчас — VPS.
 
+## Синхронизация
+- Офлайн-заработки копятся в outbox (uuid) и сливаются через POST /api/merge (идемпотентно) при появлении связи + каждые 8с.
+- Подписка на канал проверяется сервером: POST /api/check_sub (getChatMember @GGURMNEWS). Бот должен быть участником канала.
+- Репост в любой чат проверить через API нельзя — там честное подтверждение.
+- Backend+бот: systemd-служба `ggurm` (`/root/app`, env в `/root/app/.env`), HTTPS 443 через Let's Encrypt (ggurm-api.duckdns.org).
+- Обновление кода: `cd ~/app && git pull` + `systemctl restart ggurm`.
+- Фронт: Vercel (папка webapp/). BACKEND_URL сейчас — VPS.
+
 ## Правила для агента
 - Токен никогда не вписывать в код, только env. Не выводить токен в чат/логи.
 - Новые кейсы: карточка в `index.html` + запись в `ITEMS` в `app.js` + фото в `assets/cases/<name>.png`.

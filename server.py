@@ -536,7 +536,7 @@ def api_withdraws(body: In):
     return {"ok": True, "items": db.wd_history(int(u["id"]))}
 
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 def health():
     return {"ok": True}
 
