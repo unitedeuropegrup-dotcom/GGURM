@@ -1,4 +1,4 @@
-# AGENTS.md — GGУРМ
+# AGENTS.md — GGУРМ (проект: Y:\ggurm-bot)
 
 Telegram Mini App + бот с кейсами в стиле Brainrot Battle. Зелёная неоновая тема.
 
