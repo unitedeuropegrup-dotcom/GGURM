@@ -36,11 +36,17 @@ WEBAPP_DIR = os.path.join(BASE_DIR, "webapp")
 
 FREE_CD_MS = 12 * 3600
 SECRET_PRICE = 49
+LUCKY_PRICE = 79
 STAR_RATE = 2  # 1 звезда = 2 GG
 FREE_W = [(2, 70), (5, 15), (12, 8), (30, 4.5), (60, 2.5)]
-SECRET_W = [("Мем Из 2026", "М", 39, 49), ("Акула Пон", "А", 48, 27.98), ("Векосини Сигмаини", "В", 98, 3.5)]
+SECRET_W = [("Векосини Сигмаини", "В", 98, 3.5), ("Aqua Bro's", "A", 165, 0.45),
+            ("Я Жирный Уэан", "Я", 45, 14.5), ("Пельменичок Паучок", "П", 30, 35),
+            ("Анонимусный Куб", "А", 35, 21.5), ("Бан", "Б", 25, 40)]
+LUCKY_W = [("Omega Lucky Block", "O", 700, 0.5), ("Admin Lucky Block", "A", 35, 40)]
+CASES = {"secret": {"price": SECRET_PRICE, "drops": SECRET_W},
+         "lucky": {"price": LUCKY_PRICE, "drops": LUCKY_W}}
 UPGRADE_TARGETS = [
-    {"name": "Векосик Жиросик", "letter": "В", "price": 790},
+    {"name": "Векосик Жиросик", "letter": "В", "price": 205},
     {"name": "Кот Куки", "letter": "К", "price": 675},
     {"name": "Ждун", "letter": "Ж", "price": 764},
 ]
@@ -400,22 +406,35 @@ async def api_open_free(body: In):
     return {"ok": True, "price": price, "balance": bal, "won": st2["won"]}
 
 
+class OpenCaseIn(BaseModel):
+    initData: str = ""
+    case: str = "secret"
+
+
 @app.post("/api/open_secret")
 def api_open_secret(body: In):
+    return api_open_case(OpenCaseIn(initData=body.initData, case="secret"))
+
+
+@app.post("/api/open_case")
+def api_open_case(body: OpenCaseIn):
     u = need_user(body.initData)
     uid = int(u["id"])
+    spec = CASES.get(body.case)
+    if not spec:
+        raise HTTPException(400, "no case")
     st0 = db.get_user(uid)
-    free_open = (st0.get("free_secret") or 0) > 0
+    free_open = body.case == "secret" and (st0.get("free_secret") or 0) > 0
     if free_open:
         from db import _conn as _c4, _lock as _l4
         with _l4, _c4() as c:
             c.execute("UPDATE users SET free_secret=free_secret-1 WHERE tg_id=?", (uid,))
         bal = st0["balance"]
     else:
-        bal = db.deduct_balance(uid, SECRET_PRICE)
+        bal = db.deduct_balance(uid, spec["price"])
         if bal is None:
-            raise HTTPException(402, "need 49 GG")
-    name, letter, price, _w = roll_w(SECRET_W)
+            raise HTTPException(402, f"need {spec['price']} GG")
+    name, letter, price, _w = roll_w(spec["drops"])
     item_id = db.inv_add(uid, name, letter, price)
     from db import _conn, _lock
     with _lock, _conn() as c:

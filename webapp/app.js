@@ -67,13 +67,22 @@ const FREE_ITEMS = [
 ];
 // Секретный: шансы как есть (сумма 86.98 — крутится по весам, добавь 4-й мем до 100%)
 const MEMES = [
-  { name: 'Мем Из 2026',       letter: 'М', price: 39, chance: 49 },
-  { name: 'Акула Пон',         letter: 'А', price: 48, chance: 27.98 },
   { name: 'Векосини Сигмаини', letter: 'В', price: 98, chance: 3.5 },
+  { name: "Aqua Bro's", letter: 'A', price: 165, chance: 0.45 },
+  { name: 'Я Жирный Уэан', letter: 'Я', price: 45, chance: 14.5 },
+  { name: 'Пельменичок Паучок', letter: 'П', price: 30, chance: 35 },
+  { name: 'Анонимусный Куб', letter: 'А', price: 35, chance: 21.5 },
+  { name: 'Бан', letter: 'Б', price: 25, chance: 40 },
+];
+const LUCKY_PRICE = 79;
+const LUCKY_MEMES = [
+  { name: 'Omega Lucky Block', letter: 'O', price: 700, chance: 0.5 },
+  { name: 'Admin Lucky Block', letter: 'A', price: 35, chance: 40 },
 ];
 const CASES = {
-  free:   { title: 'БЕСПЛАТНЫЙ', name: 'Бесплатный', img: 'assets/cases/free.png', drops: FREE_ITEMS },
-  secret: { title: 'СЕКРЕТНЫЙ',  name: 'Секретный',  img: 'assets/cases/secret.png', drops: MEMES },
+  free:   { title: 'БЕСПЛАТНЫЙ', name: 'Бесплатный', img: 'assets/cases/free.png', price: 0, drops: FREE_ITEMS },
+  secret: { title: 'СЕКРЕТНЫЙ',  name: 'Секретный',  img: 'assets/cases/secret.png', price: SECRET_PRICE, drops: MEMES },
+  lucky:  { title: 'ЛАКИ-БЛОК',  name: 'Лаки Блок',  img: 'assets/cases/lucky.png', price: LUCKY_PRICE, drops: LUCKY_MEMES },
 };
 
 // ---------- STATE ----------
@@ -326,17 +335,19 @@ function showDetail(id) {
   document.getElementById('caseTitle').textContent = c.title;
   document.getElementById('caseName').textContent = c.name;
   document.getElementById('casePhoto').src = c.img;
+  document.getElementById('casePlaceholder').innerHTML = id === 'lucky' ? '<div class="box-emoji">🎰</div>' : '';
   document.getElementById('caseMeta').innerHTML = id === 'free'
     ? '<div class="free-note">Бесплатный кейс • каждые 12 часов</div>'
-    : `<div class="detail-meta single"><div><span>Цена</span><b>${SECRET_PRICE} GG</b></div></div>${freeSecret > 0 ? `<div class="free-note">Бесплатных открытий: ${freeSecret}</div>` : ''}`;
+    : `<div class="detail-meta single"><div><span>Цена</span><b>${c.price} GG</b></div></div>${id === 'secret' && freeSecret > 0 ? `<div class="free-note">Бесплатных открытий: ${freeSecret}</div>` : ''}`;
   const btn = document.getElementById('openCaseBtn');
   btn.disabled = false;
-  btn.textContent = id === 'free' ? 'ОТКРЫТЬ КЕЙС' : `ОТКРЫТЬ ЗА ${SECRET_PRICE} GG`;
+  btn.textContent = id === 'free' ? 'ОТКРЫТЬ КЕЙС' : `ОТКРЫТЬ ЗА ${c.price} GG`;
   renderDrops(); tickCd();
   gotoTab('case');
 }
 document.getElementById('openFreeCase').onclick = () => showDetail('free');
 document.getElementById('openSecretCase').onclick = () => showDetail('secret');
+document.getElementById('openLuckyCase').onclick = () => showDetail('lucky');
 document.getElementById('freeBannerGo').onclick = () => showDetail('free');
 document.querySelectorAll('.speed').forEach(b => b.onclick = () => {
   document.querySelectorAll('.speed').forEach(x => x.classList.remove('active'));
@@ -346,6 +357,7 @@ function filterCases(q) {
   q = (q || '').toLowerCase();
   document.getElementById('openFreeCase').style.display = ('бесплатный'.includes(q) || q === '') ? '' : 'none';
   document.getElementById('openSecretCase').style.display = ('секретный'.includes(q) || q === '') ? '' : 'none';
+  document.getElementById('openLuckyCase').style.display = (('лаки'.includes(q) || 'блок'.includes(q)) || q === '') ? '' : 'none';
 }
 document.getElementById('caseSearch').oninput = e => filterCases(e.target.value);
 document.getElementById('caseSearchHome').oninput = e => {
@@ -493,7 +505,7 @@ document.getElementById('openCaseBtn').onclick = () => {
       });
     }
   } else {
-    openSecret();
+    openPaid(curCase);
   }
 };
 document.getElementById('questClose').onclick = () => document.getElementById('questModal').classList.add('hidden');
@@ -601,38 +613,39 @@ async function spinFree() {
   showWin(iconHTML(win), win.name, `+${win.price} GG на балансе`);
 }
 
-async function openSecret() {
-  if (spinning) return;
+async function openPaid(caseId) {
+  const spec = CASES[caseId];
+  if (!spec || spinning) return;
   if (serverMode) {
-    const r = await api('/api/open_secret');
-    if (!r || !r.ok) { sfx.error(); return toast(r && r.error === 'need 49 GG' ? 'Не хватает GG — пополни баланс' : 'Нет связи с сервером'); }
+    const r = await api('/api/open_case', { case: caseId });
+    if (!r || !r.ok) { sfx.error(); return toast(r && r.error === 'need ' + spec.price + ' GG' ? 'Не хватает GG — пополни баланс' : 'Нет связи с сервером'); }
     spinning = true; sfx.open();
     balance = r.balance; wonTotal = r.won; opened += 1; save(); render();
     const win = { name: r.item.name, letter: r.item.letter, price: r.item.price };
     lastMeme = { id: r.item.id };
-    const status = await animateRoulette(MEMES, win, it => it.price + ' GG');
+    const status = await animateRoulette(spec.drops, win, it => it.price + ' GG');
     spinning = false;
     await refreshInv();
     pushFeed(win);
     status.textContent = `Выпало: ${win.name}! Мем в инвентаре`;
-    showWin(iconHTML({letter: win.letter}, 'big'), win.name, `${win.price} GG • мем в инвентаре`, { price: win.price });
+    showWin(iconHTML({letter: win.letter}, 'big'), win.name, 'мем в инвентаре', { price: win.price });
     return;
   }
-  if (balance < SECRET_PRICE) { sfx.error(); return toast('Не хватает GG — пополни баланс'); }
+  if (balance < spec.price) { sfx.error(); return toast('Не хватает GG — пополни баланс'); }
   spinning = true; sfx.open();
-  balance -= SECRET_PRICE;
-  queueOut({ kind: 'coins', amount: -SECRET_PRICE });
-  const win = rollW(MEMES);
+  balance -= spec.price;
+  queueOut({ kind: 'coins', amount: -spec.price });
+  const win = rollW(spec.drops);
   const item = { id: Date.now(), name: win.name, letter: win.letter, price: win.price, won_ts: Date.now() };
   memes.unshift(item);
   lastMeme = item;
   queueOut({ kind: 'meme', name: item.name, letter: item.letter, price: item.price });
   opened += 1; save(); render();
-  const status = await animateRoulette(MEMES, win, it => it.price + ' GG');
+  const status = await animateRoulette(spec.drops, win, it => it.price + ' GG');
   spinning = false;
   pushFeed(win);
   status.textContent = `Выпало: ${win.name}! Мем в инвентаре`;
-  showWin(iconHTML({letter: win.letter}, 'big'), win.name, `${win.price} GG • мем в инвентаре`, { price: win.price });
+  showWin(iconHTML({letter: win.letter}, 'big'), win.name, 'мем в инвентаре', { price: win.price });
 }
 
 // ---------- ИНВЕНТАРЬ / ПРОДАЖА ----------
@@ -726,7 +739,7 @@ document.getElementById('wdSubmit').onclick = async () => {
 
 // ---------- АПГРЕЙДЕР ----------
 const UP_TARGETS = [
-  { name: 'Векосик Жиросик', letter: 'В', price: 790 },
+  { name: 'Векосик Жиросик', letter: 'В', price: 205 },
   { name: 'Кот Куки', letter: 'К', price: 675 },
   { name: 'Ждун', letter: 'Ж', price: 764 },
 ];
