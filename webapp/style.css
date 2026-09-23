@@ -335,12 +335,12 @@ img{max-width:100%}
 .up-box{min-height:120px;background:rgba(0,0,0,.3);border:1px dashed rgba(34,255,136,.4);border-radius:14px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;padding:10px}
 .up-box small{font-size:12px}
 .up-box b{font-size:13px}
-.up-wheel{width:150px;height:150px;border-radius:50%;background:conic-gradient(var(--green) 0% 0%,rgba(255,70,70,.85) 0% 100%);display:flex;align-items:center;justify-content:center;padding:12px;box-shadow:0 0 30px rgba(34,255,136,.2)}
+.up-wheel{position:relative;width:150px;height:150px;border-radius:50%;background:conic-gradient(var(--green) 0% 0%,rgba(255,70,70,.85) 0% 100%);display:flex;align-items:center;justify-content:center;padding:12px;box-shadow:0 0 30px rgba(34,255,136,.2)}
 .up-wheel-in{width:100%;height:100%;border-radius:50%;background:#0a120c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 .up-wheel-in b{font-family:'Russo One';font-size:24px}
 .up-wheel-in small{font-size:10px;letter-spacing:2px;color:var(--muted)}
-.up-wheel.spin{animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+.up-needle{position:absolute;left:50%;top:50%;width:6px;height:64px;margin-left:-3px;transform:translateY(-100%) rotate(0deg);transform-origin:50% 100%;background:linear-gradient(#fff,var(--green));border-radius:3px;box-shadow:0 0 12px rgba(34,255,136,.9);z-index:2}
+.up-needle::after{content:'';position:absolute;left:50%;top:-7px;transform:translateX(-50%);border:6px solid transparent;border-bottom:9px solid #fff}
 .up-cols{display:grid;gap:14px;margin-top:14px}
 @media(min-width:700px){.up-cols{grid-template-columns:1fr 1.4fr}}
 #upStatus{text-align:center;min-height:20px}

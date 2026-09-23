@@ -775,11 +775,7 @@ document.getElementById('upGo').onclick = async () => {
   if (upBusy || !upBet || !upTarget) return;
   upBusy = true; paintUp(); sfx.open();
   document.getElementById('upStatus').textContent = 'Крутим…';
-  const wheel = document.getElementById('upWheel');
-  wheel.classList.add('spin');
-  const tick = setInterval(sfx.tick, 120);
-  await new Promise(r => setTimeout(r, 2200));
-  clearInterval(tick); wheel.classList.remove('spin');
+  const ch = upChance(upBet, upTarget);
   let win, item = null;
   if (serverMode) {
     const r = await api('/api/upgrade', { item_id: upBet.id, target: upTarget.name });
@@ -788,7 +784,6 @@ document.getElementById('upGo').onclick = async () => {
     if (win) { item = r.item; lastMeme = item; }
     await refreshInv();
   } else {
-    const ch = upChance(upBet, upTarget);
     win = Math.random() * 100 < ch;
     const i = memes.findIndex(m => String(m.id) === String(upBet.id));
     if (i >= 0) memes.splice(i, 1);
@@ -799,11 +794,23 @@ document.getElementById('upGo').onclick = async () => {
     }
     opened += 1; save(); render();
   }
+  // стрелка крутится и встаёт в зелёную (выигрыш) или красную зону
+  const needle = document.getElementById('upNeedle');
+  const span = Math.max(ch * 3.6, 2);
+  const target = win ? Math.random() * span : span + Math.random() * Math.max(360 - span, 2);
+  needle.style.transition = 'none';
+  needle.style.transform = 'translateY(-100%) rotate(0deg)';
+  void needle.offsetWidth;
+  const tick = setInterval(sfx.tick, 120);
+  needle.style.transition = 'transform 2.2s cubic-bezier(.12,.8,.12,1)';
+  needle.style.transform = `translateY(-100%) rotate(${5 * 360 + target}deg)`;
+  await new Promise(r => setTimeout(r, 2300));
+  clearInterval(tick);
   upBet = null; upBusy = false; paintUp();
   if (win && item) {
     pushFeed({ name: item.name, letter: item.letter, price: item.price });
     document.getElementById('upStatus').textContent = `Успех! Забрал ${item.name}`;
-    showWin(iconHTML({ letter: item.letter }, 'big'), item.name, `${item.price} GG • мем в инвентаре`, { price: item.price });
+    showWin(iconHTML({ letter: item.letter }, 'big'), item.name, 'мем в инвентаре', { price: item.price });
     lastMeme = item;
   } else {
     document.getElementById('upStatus').textContent = 'Неудача — мем сгорел';
