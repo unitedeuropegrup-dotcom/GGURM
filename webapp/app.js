@@ -355,9 +355,17 @@ document.querySelectorAll('.speed').forEach(b => b.onclick = () => {
 });
 function filterCases(q) {
   q = (q || '').toLowerCase();
-  document.getElementById('openFreeCase').style.display = ('бесплатный'.includes(q) || q === '') ? '' : 'none';
-  document.getElementById('openSecretCase').style.display = ('секретный'.includes(q) || q === '') ? '' : 'none';
-  document.getElementById('openLuckyCase').style.display = (('лаки'.includes(q) || 'блок'.includes(q)) || q === '') ? '' : 'none';
+  const match = (id, ...words) => {
+    document.getElementById(id).style.display = (!q || words.some(w => w.includes(q))) ? '' : 'none';
+  };
+  match('openFreeCase', 'бесплатный', 'free');
+  match('openSecretCase', 'секретный', 'secret');
+  match('openLuckyCase', 'лаки', 'блок', 'lucky');
+  document.querySelectorAll('#tab-cases .cat-block').forEach(sec => {
+    const cards = [...sec.querySelectorAll('.case-card')];
+    if (!cards.length) { sec.style.display = q ? 'none' : ''; return; } // пустые разделы прячем при поиске
+    sec.style.display = cards.some(c => c.style.display !== 'none') ? '' : 'none';
+  });
 }
 document.getElementById('caseSearch').oninput = e => filterCases(e.target.value);
 document.getElementById('caseSearchHome').oninput = e => {

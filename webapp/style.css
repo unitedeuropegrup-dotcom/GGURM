@@ -262,6 +262,10 @@ img{max-width:100%}
 .h-btn.primary{background:linear-gradient(135deg,var(--green),#00994d);color:#04120a;border:none;box-shadow:0 6px 20px rgba(34,255,136,.35)}
 .h-btn:active{transform:scale(.97)}
 .filter-label{font-size:14px;color:var(--text);margin:16px 2px 8px;font-weight:600}
+.cat-block{margin-bottom:6px}
+.cat-title{font-family:'Russo One';font-size:17px;letter-spacing:1px;text-align:center;margin:18px 0 12px;position:relative}
+.cat-title::after{content:'';display:block;width:64px;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);margin:6px auto 0}
+.soon{background:rgba(0,0,0,.25);border:1px dashed var(--border);border-radius:12px;padding:22px;text-align:center;color:var(--muted);font-size:14px}
 
 /* quest modal (задания перед бесплатным кейсом) */
 .quest-card{position:relative;background:linear-gradient(180deg,#0e2a3a,#0a141c);border:1px solid rgba(34,255,136,.25);border-radius:18px;padding:30px 20px 22px;text-align:center;max-width:360px;width:100%;box-shadow:0 0 60px rgba(0,0,0,.6);animation:pop .3s ease}
