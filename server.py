@@ -35,7 +35,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WEBAPP_DIR = os.path.join(BASE_DIR, "webapp")
 
 FREE_CD_MS = 12 * 3600
-SECRET_PRICE = 89
+SECRET_PRICE = 49
 STAR_RATE = 2  # 1 звезда = 2 GG
 FREE_W = [(2, 70), (5, 15), (12, 8), (30, 4.5), (60, 2.5)]
 SECRET_W = [("Мем Из 2026", "М", 39, 49), ("Акула Пон", "А", 48, 27.98), ("Векосини Сигмаини", "В", 98, 3.5)]
@@ -414,7 +414,7 @@ def api_open_secret(body: In):
     else:
         bal = db.deduct_balance(uid, SECRET_PRICE)
         if bal is None:
-            raise HTTPException(402, "need 89 GG")
+            raise HTTPException(402, "need 49 GG")
     name, letter, price, _w = roll_w(SECRET_W)
     item_id = db.inv_add(uid, name, letter, price)
     from db import _conn, _lock

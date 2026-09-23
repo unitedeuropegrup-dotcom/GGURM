@@ -8,7 +8,7 @@ const CHANNEL_USERNAME = "GGURMNEWS";
 const BACKEND_URL = "https://ggurm-api.duckdns.org";
 const PACKS = [[25,50],[50,100],[100,200],[500,1000]];
 const FREE_CD_MS = 12 * 60 * 60 * 1000;
-const SECRET_PRICE = 89;
+const SECRET_PRICE = 49;
 const WD_MIN = 41, WD_DELAY_MS = 3600 * 1000;
 let serverMode = false;
 
@@ -605,7 +605,7 @@ async function openSecret() {
   if (spinning) return;
   if (serverMode) {
     const r = await api('/api/open_secret');
-    if (!r || !r.ok) { sfx.error(); return toast(r && r.error === 'need 89 GG' ? 'Не хватает GG — пополни баланс' : 'Нет связи с сервером'); }
+    if (!r || !r.ok) { sfx.error(); return toast(r && r.error === 'need 49 GG' ? 'Не хватает GG — пополни баланс' : 'Нет связи с сервером'); }
     spinning = true; sfx.open();
     balance = r.balance; wonTotal = r.won; opened += 1; save(); render();
     const win = { name: r.item.name, letter: r.item.letter, price: r.item.price };
