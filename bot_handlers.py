@@ -38,9 +38,6 @@ class PrivateMiddleware(BaseMiddleware):
         elif isinstance(event, types.CallbackQuery):
             await event.answer("Недоступно.", show_alert=True)
         return None
-
-
-dp.update.middleware(PrivateMiddleware())
 # USE_CODES=0 (по умолчанию): GG начисляются сразу в общую БД (нужен server.py онлайн).
 # USE_CODES=1: после оплаты бот выдаёт чек GGDP-... (офлайн-режим без backend).
 USE_CODES = os.getenv("USE_CODES", "0") == "1"
@@ -50,6 +47,7 @@ STAR_RATE = 2  # 1 звезда = 2 GG
 PACKAGES = [(25, 50), (50, 100), (100, 200), (500, 1000)]  # (звёзды, GG)
 
 dp = Dispatcher()
+dp.update.middleware(PrivateMiddleware())
 
 
 def configure(webapp_url: str):
