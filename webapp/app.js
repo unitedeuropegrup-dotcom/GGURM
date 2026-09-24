@@ -54,7 +54,7 @@ if (user.photo_url) {
 }
 const refLink = `https://t.me/${BOT_USERNAME}?start=ref_${uid}`;
 document.getElementById('refLink').textContent = refLink;
-document.getElementById('footerTag').textContent = '@' + BOT_USERNAME;
+document.getElementById('footerTag').textContent = '@' + BOT_USERNAME + ' • v9';
 
 // ---------- ДАННЫЕ ----------
 const GG_IMG = 'assets/ggcoin.png';
