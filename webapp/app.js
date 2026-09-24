@@ -318,6 +318,7 @@ function gotoTab(name) {
   if (dw) dw.classList.add('active');
   document.getElementById('drawerWrap').classList.add('hidden');
   if (name === 'upgrade') { upBet = null; refreshInv().then(paintUp).catch(paintUp); }
+  if (name === 'settings' && typeof runDiag === 'function') { runDiag(); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 document.getElementById('burgerBtn').onclick = () => document.getElementById('drawerWrap').classList.remove('hidden');
@@ -886,6 +887,25 @@ document.getElementById('soundRow').onclick = () => {
   paintSound(); sfx.click();
   toast(soundOn() ? 'Звуки включены' : 'Звуки выключены');
 };
+async function runDiag() {
+  const s = document.getElementById('diagServer');
+  const t = document.getElementById('diagTg');
+  t.textContent = tg?.initData ? 'есть' : 'НЕТ';
+  t.style.color = tg?.initData ? '' : '#ff5555';
+  s.textContent = 'проверка…';
+  try {
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 15000);
+    const r = await fetch(BACKEND_URL + '/api/health', { cache: 'no-store', signal: ctrl.signal });
+    clearTimeout(to);
+    s.textContent = r.ok ? 'отвечает' : 'HTTP ' + r.status;
+    s.style.color = r.ok ? '' : '#ff5555';
+  } catch(e) {
+    s.textContent = 'не отвечает: ' + (e && e.name === 'AbortError' ? 'таймаут' : 'сеть/SSL');
+    s.style.color = '#ff5555';
+  }
+}
+document.getElementById('diagRetry').onclick = runDiag;
 // локальная панель (без сервера — только это устройство)
 document.getElementById('locGive').onclick = () => {
   const n = parseInt(document.getElementById('locAmt').value, 10);
